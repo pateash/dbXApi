@@ -1,0 +1,28 @@
+/* package com.example.dbx;
+
+import com.example.dbx.repository.UserRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+@Component
+@ConditionalOnProperty(name = "app.db-init", havingValue = "true")
+public class Initializer {
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    PasswordEncoder encoder;
+
+    @Override
+    public void run() throws Exception {
+        Optional<User> user = userRepository.findByUsername("admin");
+        if (!user.isPresent()) {
+            User newUser = new User("Admin", "", "admin", encoder.encode("1234"));
+            userRepository.save(newUser);
+        }
+        System.out.println(" -- Database has been initialized");
+    }
+} */
