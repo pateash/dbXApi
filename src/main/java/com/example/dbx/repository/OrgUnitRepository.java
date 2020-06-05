@@ -3,8 +3,6 @@ package com.example.dbx.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
 import com.example.dbx.model.OrgUnit;
 
 @Repository
