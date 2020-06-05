@@ -9,7 +9,9 @@ import com.example.dbx.model.OrgUnit;
 
 @Repository
 public interface OrgUnitRepository extends JpaRepository<OrgUnit, Long> {
-    Optional<OrgUnit> findByName(String name);
+//    Optional<OrgUnit> findByName(String name);
+    
+    OrgUnit findByName(String name);
 
     Boolean existsByName(String name);
 }

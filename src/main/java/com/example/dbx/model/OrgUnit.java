@@ -18,6 +18,10 @@ public class OrgUnit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    public OrgUnit() {
+    	super();
+    }
 
     @NotBlank
     @Size(min = 1, max = 50)
