@@ -8,13 +8,14 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+//This is the exception that we will store in the database as accepted exception.
 @Entity
 @Table(name="exception")
-public class ExceptionBean {
+public class AcceptedExceptionBean{
 	
 	@Id
 	@GeneratedValue(strategy= GenerationType.AUTO)
-	private int id; //We have to fill
+	private Integer id; //We have to fill
 	
 	private Date timeGenerated; //We have to fill
 	
@@ -24,7 +25,9 @@ public class ExceptionBean {
 	
 	private String description;
 	
-	private String severity;
+	//Type of severity is int.
+	// 0-> low , 1-> medium , 2-> high
+	private int severity;
 	
 	private String businessComponent;
 	
@@ -32,18 +35,18 @@ public class ExceptionBean {
 	
 	private String technicalDescription;
 	
-	private String status; //We have to fill, by default it will be "unresolved"
+	private int status; //We have to fill, by default it will be "unresolved"
 	
 	private Date updateTime; //We have to fill, initially it'll be null by default
 	
 	private String comment; //We have to fill, initially it'll be null by default
-	
-	public ExceptionBean() {
+
+	public AcceptedExceptionBean() {
 		super();
 	}
 
-	public ExceptionBean(int id, Date timeGenerated, String source, String category, String description,
-			String severity, String businessComponent, String orgUnit, String technicalDescription, String status,
+	public AcceptedExceptionBean(Integer id, Date timeGenerated, String source, String category, String description,
+			int severity, String businessComponent, String orgUnit, String technicalDescription, int status,
 			Date updateTime, String comment) {
 		super();
 		this.id = id;
@@ -60,13 +63,11 @@ public class ExceptionBean {
 		this.comment = comment;
 	}
 
-
-
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 
@@ -102,11 +103,11 @@ public class ExceptionBean {
 		this.description = description;
 	}
 
-	public String getSeverity() {
+	public int getSeverity() {
 		return severity;
 	}
 
-	public void setSeverity(String severity) {
+	public void setSeverity(int severity) {
 		this.severity = severity;
 	}
 
@@ -134,6 +135,14 @@ public class ExceptionBean {
 		this.technicalDescription = technicalDescription;
 	}
 
+	public int getStatus() {
+		return status;
+	}
+
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
 	public Date getUpdateTime() {
 		return updateTime;
 	}
@@ -148,24 +157,5 @@ public class ExceptionBean {
 
 	public void setComment(String comment) {
 		this.comment = comment;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
-	@Override
-	public String toString() {
-		return "ExceptionBean [id=" + id + ", timeGenerated=" + timeGenerated + ", source=" + source + ", category="
-				+ category + ", description=" + description + ", severity=" + severity + ", businessComponent="
-				+ businessComponent + ", orgUnit=" + orgUnit + ", technicalDescription=" + technicalDescription
-				+ ", status=" + status + ", updateTime=" + updateTime + ", comment=" + comment + "]";
-	}
-
-	
-	
+	}	
 }
