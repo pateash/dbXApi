@@ -5,14 +5,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.example.dbx.model.OrgUnit;
+import com.example.dbx.model.BusinessComponent;
 
 @Repository
-public interface OrgUnitRepository extends JpaRepository<OrgUnit, Long> {
+public interface BusinessComponentRepository extends JpaRepository<BusinessComponent, Long> {
     // Optional<OrgUnit> findByName(String name);
-    Page<OrgUnit> findAll(Pageable page);
+    Page<BusinessComponent> findAll(Pageable page);
 
-    OrgUnit findByName(String name);
+    BusinessComponent findByName(String name);
 
     Boolean existsByName(String name);
 }

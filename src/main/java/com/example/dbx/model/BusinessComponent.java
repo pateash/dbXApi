@@ -13,21 +13,21 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "org_units", uniqueConstraints = { @UniqueConstraint(columnNames = { "name" }), })
-public class OrgUnit {
+@Table(name = "business_components", uniqueConstraints = { @UniqueConstraint(columnNames = { "name" }), })
+public class BusinessComponent {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
-    
-    public OrgUnit() {
-    	super();
+
+    public BusinessComponent() {
+        super();
     }
 
     @NotBlank
     @Size(min = 1, max = 50)
     private String name;
 
-    public OrgUnit(String name) {
+    public BusinessComponent(String name) {
         this.name = name;
     }
-}
+}   

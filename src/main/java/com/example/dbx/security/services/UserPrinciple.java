@@ -1,5 +1,6 @@
 package com.example.dbx.security.services;
 
+import com.example.dbx.model.OrgUnit;
 import com.example.dbx.model.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -28,7 +29,7 @@ public class UserPrinciple implements UserDetails {
 
     private String username;
 
-    private String orgUnit;
+    private OrgUnit orgUnit;
 
     private Boolean isEnabled;
 
@@ -37,7 +38,7 @@ public class UserPrinciple implements UserDetails {
 
     private Collection<? extends GrantedAuthority> authorities;
 
-    public UserPrinciple(Long id, String name, String orgUnit, String username, Boolean isEnabled, String password,
+    public UserPrinciple(Long id, String name, OrgUnit orgUnit, String username, Boolean isEnabled, String password,
             Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.name = name;
@@ -95,9 +96,9 @@ public class UserPrinciple implements UserDetails {
     }
 
     public static UserPrinciple extractFromPrincipal(Principal principal) {
-        UsernamePasswordAuthenticationToken t = (UsernamePasswordAuthenticationToken)principal;
-        UserPrinciple up = (UserPrinciple)t.getCredentials();
-        
+        UsernamePasswordAuthenticationToken t = (UsernamePasswordAuthenticationToken) principal;
+        UserPrinciple up = (UserPrinciple) t.getPrincipal();
+
         return up;
     }
 }

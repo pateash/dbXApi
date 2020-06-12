@@ -15,9 +15,7 @@ public class SignupForm {
     @Size(min = 1, max = 50)
     private String username;
 
-    @NotBlank
-    @Size(min = 1, max = 50)
-    private String orgUnit;
+    private Long orgUnit;
 
     @NotBlank
     @Size(min = 6, max = 100)

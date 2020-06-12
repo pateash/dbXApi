@@ -1,7 +1,6 @@
 package com.example.dbx.controller;
 
 import java.net.URI;
-import java.sql.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,8 +12,12 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.example.dbx.exception.InvalidException;
 import com.example.dbx.model.AcceptedExceptionBean;
+import com.example.dbx.model.ExceptionSeverity;
 import com.example.dbx.model.ExternalException;
+import com.example.dbx.model.OrgUnit;
+import com.example.dbx.model.BusinessComponent;
 import com.example.dbx.model.RejectedExceptionBean;
+import com.example.dbx.repository.BusinessComponentRepository;
 import com.example.dbx.repository.ExceptionRepository;
 import com.example.dbx.repository.OrgUnitRepository;
 import com.example.dbx.repository.RejectedExceptionRepository;
@@ -22,93 +25,94 @@ import com.example.dbx.repository.RejectedExceptionRepository;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 public class ExternalExceptionController {
-    @Autowired
-    private ExceptionRepository exceptionRepository;
+	@Autowired
+	private ExceptionRepository exceptionRepository;
 
-    @Autowired
-    private OrgUnitRepository orgUnitRepository;
-    
-    @Autowired
-    private RejectedExceptionRepository rejectedExceptionRepository;
+	@Autowired
+	private OrgUnitRepository orgUnitRepository;
 
-    @PostMapping("/exception")
-    public ResponseEntity<Object> addException(@RequestBody ExternalException externalException) {
-        // STEP1: Validate the incoming exception.
-        // STEP2: Fill in the empty fields required for the database
-        // STEP3: Store the exception in the database
-        // STEP4: Return a relevant response
-    	
-    	//Encoding severity string to numbers:
-    	Integer severe = null;
-    	switch(externalException.getSeverity()) {
-    		case "low":
-    			severe = 0;
-    			break;
-    		case "medium":
-    			severe = 1;
-    			break;
-    		case "high":
-    			severe = 2;
-    			break;
-    	}
-    	
+	@Autowired
+	private BusinessComponentRepository businessComponentRepository;
 
-        // STEP1: Validating the incoming request:
-        if (orgUnitRepository.findByName(externalException.getOrgUnit()) == null) {
-        	//Incoming request is invalid
-        	
-        	long millis = System.currentTimeMillis();
-        	
-        	RejectedExceptionBean rejectedException = new RejectedExceptionBean(
-        			null, //id , will be auto generated, hence setting value as null 
-        			new Date(millis), //timeGenerated
-        			externalException.getSource(), //source
-        			externalException.getCategory(), //category
-        			externalException.getDescription(), //description
-        			severe, //severity
-        			externalException.getBusinessComponent(), //businessComponent
-        			externalException.getOrgUnit(), //orgUnit
-        			externalException.getTechnicalDescription(), //technical description
-        			0, //status
-        			null, //updateTime 
-        			null //comment
-        			);
-        	
-        	//Adding the rejected exception to 'rejected_exception' database
-        	rejectedExceptionRepository.save(rejectedException);
-        	
-            throw new InvalidException("Org-Unit -> " + externalException.getOrgUnit() + " does not Exist");
-        }
-        
-        //Incoming exception is valid
-        long millis = System.currentTimeMillis();
-        
-        AcceptedExceptionBean acceptedException = new AcceptedExceptionBean(
-        		null, //id , will be auto generated, hence setting value as null 
-    			new Date(millis), //timeGenerated
-    			externalException.getSource(), //source
-    			externalException.getCategory(), //category
-    			externalException.getDescription(), //description
-    			severe, //severity
-    			externalException.getBusinessComponent(), //businessComponent
-    			externalException.getOrgUnit(), //orgUnit
-    			externalException.getTechnicalDescription(), //technical description
-    			0, //status
-    			null, //updateTime 
-    			null //comment
-        		);
+	@Autowired
+	private RejectedExceptionRepository rejectedExceptionRepository;
 
-        // STEP3: Adding the exception to Database
-        AcceptedExceptionBean savedException = exceptionRepository.save(acceptedException);
+	@PostMapping("/exception")
+	public ResponseEntity<Object> addException(@RequestBody ExternalException externalException) {
+		// STEP1: Validate the incoming exception.
+		// STEP2: Fill in the empty fields required for the database
+		// STEP3: Store the exception in the database
+		// STEP4: Return a relevant response
 
-        // STEP4: Sending proper response back. We are sending the URL of the saved
-        // exception and an HTTP Response of "CREATED"
-        URI exceptionLocation = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(savedException.getId()).toUri();
+		// Encoding severity string to numbers:
+		ExceptionSeverity severity = null;
+		switch (externalException.getSeverity().toLowerCase()) {
+			case "low":
+				severity = ExceptionSeverity.SEVERITY_LOW;
+				break;
+			case "medium":
+				severity = ExceptionSeverity.SEVERITY_MEDIUM;
+				break;
+			case "high":
+				severity = ExceptionSeverity.SEVERITY_HIGH;
+				break;
+		}
 
-        return ResponseEntity.created(exceptionLocation).build();
-    }
+		// STEP1: Validating the incoming request:
+		OrgUnit orgUnit = orgUnitRepository.findByName(externalException.getOrgUnit());
+		BusinessComponent businessComponent = businessComponentRepository
+				.findByName(externalException.getBusinessComponent());
+		if (orgUnit == null || businessComponent == null) {
+			// Incoming request is invalid
+			RejectedExceptionBean rejectedException = new RejectedExceptionBean( // RejectedException
+					externalException.getSource(), // source
+					externalException.getCategory(), // category
+					externalException.getDescription(), // description
+					severity, // severity
+					externalException.getBusinessComponent() + (businessComponent == null ? ",-" : ""), // businessComponent
+					externalException.getOrgUnit() + (orgUnit == null ? ",-" : ""), // orgUnit
+					externalException.getTechnicalDescription(), // technical description
+					null // comment
+			);
+
+			// Adding the rejected exception to 'rejected_exception' database
+			rejectedExceptionRepository.save(rejectedException);
+
+			if (orgUnit == null && businessComponent != null) {
+				throw new InvalidException("Org-Unit -> " + externalException.getOrgUnit() + " does not Exist");
+			} else if (businessComponent == null && orgUnit != null) {
+				throw new InvalidException(
+						"Business-Component -> " + externalException.getBusinessComponent() + " does not Exist");
+			} else {
+				throw new InvalidException("Business-Component -> " + externalException.getBusinessComponent()
+						+ " & Org-Unit -> " + externalException.getOrgUnit() + " does not Exist");
+			}
+
+		}
+
+		// STEP2: Fill in the empty fields required for the database
+		AcceptedExceptionBean acceptedException = new AcceptedExceptionBean( // Accepted exception
+				externalException.getSource(), // source
+				externalException.getCategory(), // category
+				externalException.getDescription(), // description
+				severity, // severity
+				businessComponent, // businessComponent
+				orgUnit, // orgUnit
+				externalException.getTechnicalDescription(), // technical description
+				null // comment
+		);
+
+		// STEP3: Adding the exception to Database
+		AcceptedExceptionBean savedException = exceptionRepository.save(acceptedException);
+
+		// STEP4: Sending proper response back. We are sending the URL of the saved
+		// exception and an HTTP Response of "CREATED"
+		URI exceptionLocation = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+				.buildAndExpand(savedException.getId()).toUri();
+
+		return ResponseEntity.created(exceptionLocation).build();
+	}
 
 }
 
-//eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhcHVydiIsImlhdCI6MTU5MTYwNzM2MiwiZXhwIjoxNTkxNjkzNzYyfQ.hHd2lX8E0OJh4B2Mieexr40IzLgASCmwyYdwwiNAssR3HwyOL50vEeeSIwLMNsJySDBaHlHCq57Br5xXOzTJZw
+// eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhcHVydiIsImlhdCI6MTU5MTYwNzM2MiwiZXhwIjoxNTkxNjkzNzYyfQ.hHd2lX8E0OJh4B2Mieexr40IzLgASCmwyYdwwiNAssR3HwyOL50vEeeSIwLMNsJySDBaHlHCq57Br5xXOzTJZw

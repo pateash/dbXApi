@@ -1,26 +1,17 @@
 package com.example.dbx.message.response;
 
+import com.example.dbx.model.UserRole;
+
+import lombok.Data;
+
+@Data
 public class JwtResponse {
     private String token;
     private String type = "Bearer";
+    private UserRole role;
 
-    public JwtResponse(String accessToken) {
+    public JwtResponse(String accessToken, UserRole role) {
         this.token = accessToken;
-    }
-
-    public String getAccessToken() {
-        return token;
-    }
-
-    public void setAccessToken(String accessToken) {
-        this.token = accessToken;
-    }
-
-    public String getTokenType() {
-        return type;
-    }
-
-    public void setTokenType(String tokenType) {
-        this.type = tokenType;
+        this.role = role;
     }
 }
