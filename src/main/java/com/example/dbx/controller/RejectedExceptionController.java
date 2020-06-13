@@ -239,8 +239,9 @@ public class RejectedExceptionController {
 		externalException.setOrgUnit(externalException.getOrgUnit().replace(",-", ""));
 
 		OrgUnit orgUnit = orgUnitRepository.findByName(externalException.getOrgUnit());
-		BusinessComponent businessComponent = businessComponentRepository
-				.findByName(externalException.getBusinessComponent());
+		BusinessComponent businessComponent = businessComponentRepository.findByNameAndOrgUnitIdAndIsEnabled(
+				externalException.getBusinessComponent(),
+				(orgUnit != null && orgUnit.getId() != null) ? orgUnit.getId() : -1, true);
 		if (orgUnit == null || businessComponent == null) {
 			if (orgUnit == null && businessComponent != null) {
 				throw new InvalidException("Org-Unit -> " + externalException.getOrgUnit() + " does not Exist");
