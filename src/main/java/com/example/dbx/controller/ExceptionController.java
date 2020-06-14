@@ -28,14 +28,18 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.Data;
 
 import com.example.dbx.exception.ExceptionNotFound;
-// import com.example.dbx.exception.InvalidQueryException;
 import com.example.dbx.model.AcceptedExceptionBean;
+import com.example.dbx.model.BusinessComponent;
 import com.example.dbx.model.ExceptionBeanUpdate;
 import com.example.dbx.model.ExceptionFilter;
 import com.example.dbx.model.ExceptionSeverity;
 import com.example.dbx.model.ExceptionStatus;
+import com.example.dbx.model.OldExceptionBean;
+import com.example.dbx.model.OrgUnit;
+import com.example.dbx.repository.BusinessComponentRepository;
 import com.example.dbx.repository.ExceptionRepository;
-// import com.example.dbx.repository.OrgUnitRepository;
+import com.example.dbx.repository.OldExceptionRepository;
+import com.example.dbx.repository.OrgUnitRepository;
 import com.example.dbx.security.services.UserPrinciple;
 
 /**
@@ -56,6 +60,16 @@ public class ExceptionController {
 
 	@Autowired
 	private ExceptionRepository exceptionRepository;
+	
+	@Autowired
+	private OldExceptionRepository oldExceptionRepository;
+	
+	@Autowired
+	private BusinessComponentRepository businessComponentRepository;
+	
+	@Autowired
+	private OrgUnitRepository orgUnitRepository;
+	
 
 	private Direction getDirection(String order) {
 		return (order != null && order.toLowerCase().contains("des")) ? Direction.DESC : Direction.ASC;
@@ -178,6 +192,7 @@ public class ExceptionController {
 		return res.get();
 	}
 
+
 	@PatchMapping("/exception/{id}")
 	public AcceptedExceptionBean updateExceptionBean( // update exception
 			@PathVariable Long id, // id
@@ -188,20 +203,43 @@ public class ExceptionController {
 		Long orgUnitId = userPrinciple.getOrgUnit().getId();
 
 		System.out.println("Org Unit - " + userPrinciple.getOrgUnit());
-		Optional<AcceptedExceptionBean> res = exceptionRepository.findByIdAndOrgUnitId(id, orgUnitId);
-		if (!res.isPresent()) {
+	
+		Optional<AcceptedExceptionBean> opt = exceptionRepository.findByIdAndOrgUnitId(id, orgUnitId);
+		if (!opt.isPresent()) {
 			throw new ExceptionNotFound("Exception with id -> " + id + " does not exist");
 		}
-
-		AcceptedExceptionBean exceptionBean = res.get();
+		AcceptedExceptionBean res = opt.get();
+		
+		
 		long millis = System.currentTimeMillis();
+		
+		OldExceptionBean exceptionBean = new OldExceptionBean(
+				res,
+				res.getSource(),
+				res.getCategory(),
+				res.getDescription(),
+				res.getSeverity(),
+				res.getBusinessComponent(),
+				res.getOrgUnit(),
+				res.getTechnicalDescription(),
+				res.getStatus(),
+				new Timestamp(millis),
+				res.getComment()
+		);
+		
 
-		exceptionBean.setComment(update.getComment());
-		exceptionBean.setStatus(update.getStatus());
-		exceptionBean.setUpdateTime(new Timestamp(millis));
-
-		exceptionRepository.save(exceptionBean);
-
-		return exceptionBean;
+		oldExceptionRepository.save(exceptionBean); //Saving the old exception in database
+		
+		//Updating the exception
+		res.setComment(update.getComment());
+		res.setStatus(update.getStatus());
+		res.setUpdateTime(new Timestamp(millis));
+		
+		//Uncomment this
+		exceptionRepository.save(res);  
+		
+		return res;
+		
 	}
+	
 }

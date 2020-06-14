@@ -14,6 +14,8 @@ import com.example.dbx.model.ExceptionStatus;
 @Repository
 public interface ExceptionRepository extends JpaRepository<AcceptedExceptionBean, Long> {
 	Optional<AcceptedExceptionBean> findByIdAndOrgUnitId(Long id, Long orgUnitId);
+	
+//	AcceptedExceptionBean findByIdAndOrgUnitId(Long id, Long orgUnitId);
 
 	Page<AcceptedExceptionBean> findByCategoryContaining(String category, Pageable pageable);
 

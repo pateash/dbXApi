@@ -44,7 +44,7 @@ public class ExternalExceptionController {
 		// STEP3: Store the exception in the database
 		// STEP4: Return a relevant response
 
-		// Encoding severity string to numbers:
+		// Encoding severity:
 		ExceptionSeverity severity = null;
 		switch (externalException.getSeverity().toLowerCase()) {
 			case "low":
@@ -114,5 +114,3 @@ public class ExternalExceptionController {
 	}
 
 }
-
-// eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhcHVydiIsImlhdCI6MTU5MTYwNzM2MiwiZXhwIjoxNTkxNjkzNzYyfQ.hHd2lX8E0OJh4B2Mieexr40IzLgASCmwyYdwwiNAssR3HwyOL50vEeeSIwLMNsJySDBaHlHCq57Br5xXOzTJZw
