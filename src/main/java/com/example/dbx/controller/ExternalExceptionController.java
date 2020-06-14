@@ -60,8 +60,9 @@ public class ExternalExceptionController {
 
 		// STEP1: Validating the incoming request:
 		OrgUnit orgUnit = orgUnitRepository.findByName(externalException.getOrgUnit());
-		BusinessComponent businessComponent = businessComponentRepository
-				.findByName(externalException.getBusinessComponent());
+		BusinessComponent businessComponent = businessComponentRepository.findByNameAndOrgUnitIdAndIsEnabled(
+				externalException.getBusinessComponent(),
+				(orgUnit != null && orgUnit.getId() != null) ? orgUnit.getId() : -1, true);
 		if (orgUnit == null || businessComponent == null) {
 			// Incoming request is invalid
 			RejectedExceptionBean rejectedException = new RejectedExceptionBean( // RejectedException
