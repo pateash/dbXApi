@@ -79,7 +79,7 @@ public class AdminApi {
 		Page<User> pageResult;
 
 		if (filter == null || (filter != null && filter.getIsEnabled() == null)) {
-			System.out.println("FILTER NULL");
+			// System.out.println("FILTER NULL");
 			pageResult = userRepository.findAllByRole(UserRole.ROLE_USER, pageRequest);
 		} else {
 			pageResult = userRepository.findByIsEnabledAndRole(filter.getIsEnabled(), UserRole.ROLE_USER, pageRequest);

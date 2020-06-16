@@ -8,11 +8,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 public class ExceptionBeanUpdate {
-	private String comment;
+	private ExceptionSeverity severity;
 	private ExceptionStatus status;
-
-	@Override
-	public String toString() {
-		return "UpdateCommentRequest [comment=" + comment + ", status=" + status + "]";
-	}
+	private BusinessComponent businessComponent;
+	private String technicalDescription;
+	private String comment;
 }

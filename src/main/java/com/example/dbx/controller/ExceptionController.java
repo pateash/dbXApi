@@ -1,6 +1,7 @@
 package com.example.dbx.controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.security.Principal;
@@ -25,7 +26,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import com.example.dbx.exception.ExceptionNotFound;
 import com.example.dbx.model.AcceptedExceptionBean;
@@ -35,7 +38,6 @@ import com.example.dbx.model.ExceptionFilter;
 import com.example.dbx.model.ExceptionSeverity;
 import com.example.dbx.model.ExceptionStatus;
 import com.example.dbx.model.OldExceptionBean;
-import com.example.dbx.model.OrgUnit;
 import com.example.dbx.repository.BusinessComponentRepository;
 import com.example.dbx.repository.ExceptionRepository;
 import com.example.dbx.repository.OldExceptionRepository;
@@ -45,11 +47,24 @@ import com.example.dbx.security.services.UserPrinciple;
 /**
  * ExceptionsResult
  */
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
 class ExceptionsResult {
 	List<AcceptedExceptionBean> exceptions;
 	Long totalElements;
 
+}
+
+/**
+ * OldExceptionsResults
+ */
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+class OldExceptionsResult {
+	List<OldExceptionBean> oldExceptions;
+	Long totalElements;
 }
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -60,16 +75,15 @@ public class ExceptionController {
 
 	@Autowired
 	private ExceptionRepository exceptionRepository;
-	
+
 	@Autowired
 	private OldExceptionRepository oldExceptionRepository;
-	
+
 	@Autowired
 	private BusinessComponentRepository businessComponentRepository;
-	
+
 	@Autowired
 	private OrgUnitRepository orgUnitRepository;
-	
 
 	private Direction getDirection(String order) {
 		return (order != null && order.toLowerCase().contains("des")) ? Direction.DESC : Direction.ASC;
@@ -92,9 +106,10 @@ public class ExceptionController {
 		UserPrinciple userPrinciple = UserPrinciple.extractFromPrincipal(principal);
 		Long id = userPrinciple.getOrgUnit().getId();
 
-		System.out.println("Org Unit - " + userPrinciple.getOrgUnit());
-		System.out.println(sort + " - " + order);
-		System.out.println(filter);
+		/*
+		 * System.out.println("Org Unit - " + userPrinciple.getOrgUnit());
+		 * System.out.println(sort + " - " + order); System.out.println(filter);
+		 */
 		List<Order> orders = new ArrayList<Order>();
 		ExceptionsResult result = new ExceptionsResult();
 
@@ -183,7 +198,7 @@ public class ExceptionController {
 		UserPrinciple userPrinciple = UserPrinciple.extractFromPrincipal(principal);
 		Long orgUnitId = userPrinciple.getOrgUnit().getId();
 
-		System.out.println("Org Unit - " + userPrinciple.getOrgUnit());
+		// System.out.println("Org Unit - " + userPrinciple.getOrgUnit());
 		Optional<AcceptedExceptionBean> res = exceptionRepository.findByIdAndOrgUnitId(id, orgUnitId);
 		if (!res.isPresent()) {
 			throw new ExceptionNotFound("Exception with id -> " + id + " does not exist");
@@ -191,7 +206,6 @@ public class ExceptionController {
 
 		return res.get();
 	}
-
 
 	@PatchMapping("/exception/{id}")
 	public AcceptedExceptionBean updateExceptionBean( // update exception
@@ -202,44 +216,92 @@ public class ExceptionController {
 		UserPrinciple userPrinciple = UserPrinciple.extractFromPrincipal(principal);
 		Long orgUnitId = userPrinciple.getOrgUnit().getId();
 
-		System.out.println("Org Unit - " + userPrinciple.getOrgUnit());
-	
+		// System.out.println("Org Unit - " + userPrinciple.getOrgUnit());
+
 		Optional<AcceptedExceptionBean> opt = exceptionRepository.findByIdAndOrgUnitId(id, orgUnitId);
 		if (!opt.isPresent()) {
 			throw new ExceptionNotFound("Exception with id -> " + id + " does not exist");
 		}
+		BusinessComponent businessComponent = businessComponentRepository
+				.findByIdAndOrgUnitIdAndIsEnabled(update.getBusinessComponent().getId(), orgUnitId, true);
 		AcceptedExceptionBean res = opt.get();
-		
-		
-		long millis = System.currentTimeMillis();
-		
-		OldExceptionBean exceptionBean = new OldExceptionBean(
-				res,
-				res.getSource(),
-				res.getCategory(),
-				res.getDescription(),
-				res.getSeverity(),
-				res.getBusinessComponent(),
-				res.getOrgUnit(),
-				res.getTechnicalDescription(),
-				res.getStatus(),
-				new Timestamp(millis),
-				res.getComment()
-		);
-		
 
-		oldExceptionRepository.save(exceptionBean); //Saving the old exception in database
-		
-		//Updating the exception
-		res.setComment(update.getComment());
+		System.out.println("exception old:- " + res);
+
+		long millis = System.currentTimeMillis();
+
+		OldExceptionBean exceptionBean = new OldExceptionBean(res.getId(), res.getSeverity(),
+				res.getBusinessComponent(), res.getTechnicalDescription(), res.getStatus(), res.getComment());
+
+		exceptionBean = oldExceptionRepository.save(exceptionBean); // Saving the old exception in database
+
+		System.out.println("exception save old:- " + exceptionBean);
+
+		// Updating the exception
+		res.setSeverity(update.getSeverity());
 		res.setStatus(update.getStatus());
+		res.setBusinessComponent(businessComponent);
+		res.setTechnicalDescription(update.getTechnicalDescription());
+		res.setComment(update.getComment());
 		res.setUpdateTime(new Timestamp(millis));
-		
-		//Uncomment this
-		exceptionRepository.save(res);  
-		
+
+		System.out.println("exception new:- " + res);
+
+		// Uncomment this
+		res = exceptionRepository.save(res);
+
 		return res;
-		
+
 	}
-	
+
+	@GetMapping("/oldException/{id}")
+	public OldExceptionsResult getExceptionVersions( // get particluar exception
+			@PathVariable Long id, // id
+			Principal principal, // principal
+			@RequestParam(defaultValue = "0", required = false) Integer page, // page no.
+			@RequestParam(defaultValue = "1000", required = false) Integer pageSize // page size
+	) {
+		UserPrinciple userPrinciple = UserPrinciple.extractFromPrincipal(principal);
+		Long orgUnitId = userPrinciple.getOrgUnit().getId();
+
+		// System.out.println("Org Unit - " + userPrinciple.getOrgUnit());
+		Optional<AcceptedExceptionBean> res = exceptionRepository.findByIdAndOrgUnitId(id, orgUnitId);
+		if (!res.isPresent()) {
+			throw new ExceptionNotFound("Exception with id -> " + id + " does not exist");
+		}
+
+		PageRequest pageReq = PageRequest.of(page, pageSize, Sort.by(Direction.DESC, "id"));
+		Page<OldExceptionBean> pageRes = oldExceptionRepository.findByExceptionId(res.get().getId(), pageReq);
+		List<OldExceptionBean> exceptionBeans = pageRes.getContent();
+		int idx = exceptionBeans.size();
+
+		for (OldExceptionBean oldExceptionBean : exceptionBeans) {
+			oldExceptionBean.setVersion(idx--);
+		}
+
+		return new OldExceptionsResult(exceptionBeans, pageRes.getTotalElements());
+	}
+
+	// @GetMapping("/oldException/{id}")
+	// public OldExceptionsResult getExceptionVersions( // get particluar exception
+	// @PathVariable Long id, // id
+	// Principal principal // principal
+	// ) {
+	// UserPrinciple userPrinciple = UserPrinciple.extractFromPrincipal(principal);
+	// Long orgUnitId = userPrinciple.getOrgUnit().getId();
+
+	// System.out.println("Org Unit - " + userPrinciple.getOrgUnit());
+	// Optional<AcceptedExceptionBean> res =
+	// exceptionRepository.findByIdAndOrgUnitId(id, orgUnitId);
+	// if (!res.isPresent()) {
+	// throw new ExceptionNotFound("Exception with id -> " + id + " does not
+	// exist");
+	// }
+
+	// List<OldExceptionBean> allExceptions =
+	// oldExceptionRepository.findByExceptionId(res.get().getId());
+
+	// return new OldExceptionsResult(allExceptions,
+	// oldExceptionRepository.countByExceptionId(res.get().getId()));
+	// }
 }

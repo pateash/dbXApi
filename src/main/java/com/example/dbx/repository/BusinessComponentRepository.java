@@ -24,5 +24,7 @@ public interface BusinessComponentRepository extends JpaRepository<BusinessCompo
 
     BusinessComponent findByNameAndOrgUnitIdAndIsEnabled(String name, Long id, Boolean isEnabled);
 
+    BusinessComponent findByIdAndOrgUnitIdAndIsEnabled(Long id, Long orgUnitId, Boolean isEnabled);
+
     Boolean existsByName(String name);
 }

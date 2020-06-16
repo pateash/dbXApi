@@ -57,12 +57,11 @@ public class BusinessComponentApi {
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping("/businessComponent")
     public BusinessComponentsResult getAllBusinessComponent(@RequestParam(required = true, defaultValue = "0") int page,
-            @RequestParam(required = true, defaultValue = "5") int pageSize, Principal principal) {
+            @RequestParam(required = true, defaultValue = "5000") int pageSize, Principal principal) {
         UserPrinciple userPrinciple = UserPrinciple.extractFromPrincipal(principal);
         Pageable pageRequest = PageRequest.of(page, pageSize);
         Page<BusinessComponent> pageResult;
 
-        System.out.println(userPrinciple.getUserRole());
         if (userPrinciple.getUserRole() == UserRole.ROLE_ADMIN) {
             pageResult = businessComponentRepository.findAll(pageRequest);
         } else {
