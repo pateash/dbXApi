@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dbx
+data:
+  application.properties: |-
+    spring.datasource.url=jdbc:postgresql://dbx-db:5432/dbx
