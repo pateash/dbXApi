@@ -1,12 +1,11 @@
 package com.example.dbx.controller;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.math.BigInteger;
 import java.security.Principal;
 import java.sql.Timestamp;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,21 +24,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import com.example.dbx.exception.ExceptionNotFound;
 import com.example.dbx.model.AcceptedExceptionBean;
 import com.example.dbx.model.BusinessComponent;
 import com.example.dbx.model.ExceptionBeanUpdate;
+import com.example.dbx.model.ExceptionCategoryCount;
 import com.example.dbx.model.ExceptionFilter;
 import com.example.dbx.model.ExceptionSeverity;
 import com.example.dbx.model.ExceptionStatus;
+import com.example.dbx.model.ExceptionSummary;
 import com.example.dbx.model.OldExceptionBean;
 import com.example.dbx.repository.BusinessComponentRepository;
 import com.example.dbx.repository.ExceptionRepository;
+import com.example.dbx.repository.ExceptionSummaryRepository;
 import com.example.dbx.repository.OldExceptionRepository;
 import com.example.dbx.repository.OrgUnitRepository;
 import com.example.dbx.security.services.UserPrinciple;
@@ -84,6 +84,9 @@ public class ExceptionController {
 
 	@Autowired
 	private OrgUnitRepository orgUnitRepository;
+	
+	@Autowired
+	private ExceptionSummaryRepository exceptionSummaryRepository;
 
 	private Direction getDirection(String order) {
 		return (order != null && order.toLowerCase().contains("des")) ? Direction.DESC : Direction.ASC;
@@ -106,10 +109,6 @@ public class ExceptionController {
 		UserPrinciple userPrinciple = UserPrinciple.extractFromPrincipal(principal);
 		Long id = userPrinciple.getOrgUnit().getId();
 
-		/*
-		 * System.out.println("Org Unit - " + userPrinciple.getOrgUnit());
-		 * System.out.println(sort + " - " + order); System.out.println(filter);
-		 */
 		List<Order> orders = new ArrayList<Order>();
 		ExceptionsResult result = new ExceptionsResult();
 
@@ -264,7 +263,6 @@ public class ExceptionController {
 		UserPrinciple userPrinciple = UserPrinciple.extractFromPrincipal(principal);
 		Long orgUnitId = userPrinciple.getOrgUnit().getId();
 
-		// System.out.println("Org Unit - " + userPrinciple.getOrgUnit());
 		Optional<AcceptedExceptionBean> res = exceptionRepository.findByIdAndOrgUnitId(id, orgUnitId);
 		if (!res.isPresent()) {
 			throw new ExceptionNotFound("Exception with id -> " + id + " does not exist");
@@ -281,27 +279,48 @@ public class ExceptionController {
 
 		return new OldExceptionsResult(exceptionBeans, pageRes.getTotalElements());
 	}
+	
+	//Change the return type to ExceptionSummary
+	@GetMapping("/exception/summary")
+	public ExceptionSummary getExceptionSummary(Principal principal){
+		//Extracting the org unit ID from UserPrincipal
+		UserPrinciple userPrinciple = UserPrinciple.extractFromPrincipal(principal);
+		Long orgUnitId = userPrinciple.getOrgUnit().getId();
+		
+		//Validate the orgUnitID
+		
+		List<ExceptionCategoryCount> exceptionCategoryCount = new ArrayList<>();
+		
+		List<Object[]> res = exceptionSummaryRepository.findExceptionCountByCategory(orgUnitId);
+		
+		//Converting the BigInteger value to Long so that it can be stored as per the data type of the variable -> categoryCount
+		for(Object[] obj : res ) {
+			BigInteger x = (BigInteger)obj[1];
+			exceptionCategoryCount.add(new ExceptionCategoryCount((String)obj[0] , x.longValue()));
+		}
+		
+		//Querying the database
+		Long totalExceptions = exceptionSummaryRepository.findTotalExceptions(orgUnitId);
+		Long totalUnresolvedExceptions = exceptionSummaryRepository.findTotalUnresolvedExceptions(orgUnitId);
+		Long totalResolvedExceptions = exceptionSummaryRepository.findTotalResolvedExceptions(orgUnitId);
+		Long totalLowSeverityExceptions = exceptionSummaryRepository.findTotalLowSeverityExceptions(orgUnitId);
+		Long totalMediumSeverityExceptions = exceptionSummaryRepository.findTotalMediumSeverityExceptions(orgUnitId);
+		Long totalHighSeverityExceptions = exceptionSummaryRepository.findTotalHighSeverityExceptions(orgUnitId);
+		
+		
+		//Creating the response object using constructor
+		ExceptionSummary exceptionSummary = new ExceptionSummary(
+				totalExceptions,
+				totalResolvedExceptions,
+				totalUnresolvedExceptions,
+				totalLowSeverityExceptions,
+				totalMediumSeverityExceptions,
+				totalHighSeverityExceptions,
+				exceptionCategoryCount
+			);
+		
+		//Sending the response
+		return exceptionSummary;
 
-	// @GetMapping("/oldException/{id}")
-	// public OldExceptionsResult getExceptionVersions( // get particluar exception
-	// @PathVariable Long id, // id
-	// Principal principal // principal
-	// ) {
-	// UserPrinciple userPrinciple = UserPrinciple.extractFromPrincipal(principal);
-	// Long orgUnitId = userPrinciple.getOrgUnit().getId();
-
-	// System.out.println("Org Unit - " + userPrinciple.getOrgUnit());
-	// Optional<AcceptedExceptionBean> res =
-	// exceptionRepository.findByIdAndOrgUnitId(id, orgUnitId);
-	// if (!res.isPresent()) {
-	// throw new ExceptionNotFound("Exception with id -> " + id + " does not
-	// exist");
-	// }
-
-	// List<OldExceptionBean> allExceptions =
-	// oldExceptionRepository.findByExceptionId(res.get().getId());
-
-	// return new OldExceptionsResult(allExceptions,
-	// oldExceptionRepository.countByExceptionId(res.get().getId()));
-	// }
+	}
 }
