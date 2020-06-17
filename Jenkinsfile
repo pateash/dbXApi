@@ -1,6 +1,5 @@
 node('maven') {
   stage('Build') {
-    git url: "https://github.com/ashishpatel0720/dbXApi.git"
     sh "mvn package"
     stash name:"jar", includes:"target/dbxApi.jar"
   }
