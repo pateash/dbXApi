@@ -1,11 +1,16 @@
 package com.example.dbx.controller;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.math.BigInteger;
 import java.security.Principal;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +35,8 @@ import lombok.NoArgsConstructor;
 import com.example.dbx.exception.ExceptionNotFound;
 import com.example.dbx.model.AcceptedExceptionBean;
 import com.example.dbx.model.BusinessComponent;
+import com.example.dbx.model.DayWiseSeverityCount;
+import com.example.dbx.model.DayWiseSeverityCountWrapper;
 import com.example.dbx.model.ExceptionBeanUpdate;
 import com.example.dbx.model.ExceptionCategoryCount;
 import com.example.dbx.model.ExceptionFilter;
@@ -282,7 +289,7 @@ public class ExceptionController {
 	
 	//Change the return type to ExceptionSummary
 	@GetMapping("/exception/summary")
-	public ExceptionSummary getExceptionSummary(Principal principal){
+	public ExceptionSummary getExceptionSummary(Principal principal) throws ParseException{
 		//Extracting the org unit ID from UserPrincipal
 		UserPrinciple userPrinciple = UserPrinciple.extractFromPrincipal(principal);
 		Long orgUnitId = userPrinciple.getOrgUnit().getId();
@@ -307,7 +314,32 @@ public class ExceptionController {
 		Long totalMediumSeverityExceptions = exceptionSummaryRepository.findTotalMediumSeverityExceptions(orgUnitId);
 		Long totalHighSeverityExceptions = exceptionSummaryRepository.findTotalHighSeverityExceptions(orgUnitId);
 		
+		/**************************************************************************************************************/
+		//Code for past 7 days severity count day wise
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar cal = Calendar.getInstance();
 		
+		List<DayWiseSeverityCountWrapper> dayWiseSeverityWrapper = new ArrayList<>();
+		
+		String after = null;
+		String before = null;
+		
+		for(int i=1;i<=7;i++) {
+			after = dateFormat.format(cal.getTime());
+			cal.add(Calendar.DATE, -1);
+			before = dateFormat.format(cal.getTime());
+			
+			List<Object[]> response1 = exceptionSummaryRepository.findExceptionCountByDate(dateFormat.parse(before) , dateFormat.parse(after) , orgUnitId);
+			List<DayWiseSeverityCount> dayWiseCount = new ArrayList<>();
+			
+			for(Object[] obj : response1) {
+				BigInteger x = (BigInteger)obj[1];
+				dayWiseCount.add(new DayWiseSeverityCount((Integer)obj[0] , x.longValue()));
+			}
+			
+			dayWiseSeverityWrapper.add(new DayWiseSeverityCountWrapper(before , dayWiseCount));
+		}
+		/**********************************************************************************************************/
 		//Creating the response object using constructor
 		ExceptionSummary exceptionSummary = new ExceptionSummary(
 				totalExceptions,
@@ -316,7 +348,8 @@ public class ExceptionController {
 				totalLowSeverityExceptions,
 				totalMediumSeverityExceptions,
 				totalHighSeverityExceptions,
-				exceptionCategoryCount
+				exceptionCategoryCount,
+				dayWiseSeverityWrapper
 			);
 		
 		//Sending the response
