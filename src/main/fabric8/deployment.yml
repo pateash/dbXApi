@@ -1,0 +1,19 @@
+spec:
+  template:
+    spec:
+      containers:
+        - env:
+          - name: spring_jpa_database
+            value: postgresql
+          - name: spring_datasource_url
+            value: jdbc:postgresql://postgresql/testdb
+          - name: spring_datasource_username
+            valueFrom:
+              secretKeyRef:
+                name: postgresql
+                key: database-user
+          - name: spring_datasource_password
+            valueFrom:
+              secretKeyRef:
+                name: postgresql
+                key: database-password
