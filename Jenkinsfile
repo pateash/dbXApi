@@ -1,5 +1,6 @@
 node('maven') {
   stage('Build') {
+    checkout scm
     sh "mvn package"
     stash name:"jar", includes:"target/dbxApi.jar"
   }
