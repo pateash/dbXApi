@@ -1,7 +1,5 @@
 package com.example.dbx.model;
 
-import java.io.Serializable;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -15,17 +13,16 @@ import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
 @Entity
 @Table(name = "users", uniqueConstraints = { @UniqueConstraint(columnNames = { "username" }), })
-public class User implements Serializable {
-    /**
-     *
-     */
-    private static final long serialVersionUID = 7240279187325512917L;
-
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -37,10 +34,6 @@ public class User implements Serializable {
     @NotBlank
     @Size(min = 1, max = 50)
     private String username;
-
-    /* @NotBlank
-    @Size(min = 1, max = 50)
-    private String orgUnit; */
     
 	@ManyToOne
 	@JoinColumn(name = "org_unit_id")
@@ -54,9 +47,6 @@ public class User implements Serializable {
     private UserRole role;
 
     private Boolean isEnabled;
-
-    public User() {
-    }
 
     public User(String name, OrgUnit orgUnit, String username, String password) {
         this.name = name;

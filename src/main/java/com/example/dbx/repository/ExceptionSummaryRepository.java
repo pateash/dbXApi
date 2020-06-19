@@ -1,6 +1,7 @@
 package com.example.dbx.repository;
 
 
+import java.util.Date;
 import java.util.List;
 
 
@@ -33,5 +34,8 @@ public interface ExceptionSummaryRepository extends JpaRepository<AcceptedExcept
 	
 	@Query(value="SELECT  category , COUNT(*) FROM exceptions WHERE org_unit_id = ?1 GROUP BY category" , nativeQuery = true)
 	public List<Object[]> findExceptionCountByCategory(Long org_unit_id);
+	
+	@Query(value="SELECT severity, COUNT(*) FROM exceptions WHERE ((time_generated > ?1 AND time_generated < ?2) AND org_unit_id = ?3) GROUP BY severity" , nativeQuery=true)
+	public List<Object[]> findExceptionCountByDate(Date yesterday , Date today , Long org_unit_id);
 	
 }

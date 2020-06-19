@@ -17,26 +17,29 @@ public class ExceptionSummary {
 	
 	private Long totalMediumSeverityExceptions;
 	
-	private Long totalHighSeverityException;
+	private Long totalHighSeverityExceptions;
 	
 	private List<ExceptionCategoryCount> exceptionCategoryCount;
+	
+	private List<DayWiseSeverityCountWrapper> dayWiseSeverityCountWrapper;
+
+	public ExceptionSummary() {
+		super();
+	}
 
 	public ExceptionSummary(Long totalExceptions, Long totalResolvedExceptions, Long totalUnresolvedExceptions,
 			Long totalLowSeverityExceptions, Long totalMediumSeverityExceptions, Long totalHighSeverityException,
-			List<ExceptionCategoryCount> exceptionCategoryCount) {
+			List<ExceptionCategoryCount> exceptionCategoryCount,
+			List<DayWiseSeverityCountWrapper> dayWiseSeverityCountWrapper) {
 		super();
 		this.totalExceptions = totalExceptions;
 		this.totalResolvedExceptions = totalResolvedExceptions;
 		this.totalUnresolvedExceptions = totalUnresolvedExceptions;
 		this.totalLowSeverityExceptions = totalLowSeverityExceptions;
 		this.totalMediumSeverityExceptions = totalMediumSeverityExceptions;
-		this.totalHighSeverityException = totalHighSeverityException;
+		this.totalHighSeverityExceptions = totalHighSeverityException;
 		this.exceptionCategoryCount = exceptionCategoryCount;
+		this.dayWiseSeverityCountWrapper = dayWiseSeverityCountWrapper;
 	}
-
-	public ExceptionSummary() {
-		super();
-	}
-	
 	
 }

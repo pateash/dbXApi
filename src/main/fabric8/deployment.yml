@@ -6,7 +6,7 @@ spec:
           - name: spring_jpa_database
             value: postgresql
           - name: spring_datasource_url
-            value: jdbc:postgresql://postgresql/testdb
+            value: jdbc:postgresql://postgresql/dbx
           - name: spring_datasource_username
             valueFrom:
               secretKeyRef:
@@ -17,3 +17,15 @@ spec:
               secretKeyRef:
                 name: postgresql
                 key: database-password
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 180
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 30
