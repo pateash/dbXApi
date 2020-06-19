@@ -1,17 +1,5 @@
 package com.example.dbx.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.domain.Sort.Order;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,51 +7,25 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.dbx.exception.ExceptionNotFound;
-import com.example.dbx.exception.InvalidException;
+import lombok.RequiredArgsConstructor;
+
 import com.example.dbx.model.RejectedExceptionBean;
 import com.example.dbx.model.RejectedExceptionsResult;
 import com.example.dbx.model.ExceptionFilter;
-import com.example.dbx.model.ExceptionSeverity;
-import com.example.dbx.model.ExceptionStatus;
-import com.example.dbx.model.OrgUnit;
-import com.example.dbx.model.AcceptedExceptionBean;
-import com.example.dbx.model.BusinessComponent;
-import com.example.dbx.repository.BusinessComponentRepository;
-import com.example.dbx.repository.ExceptionRepository;
-import com.example.dbx.repository.OrgUnitRepository;
-import com.example.dbx.repository.RejectedExceptionRepository;
+import com.example.dbx.service.RejectedExceptionsService;
 
+@RequiredArgsConstructor
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api")
 @PreAuthorize("hasRole('ADMIN')")
 public class RejectedExceptionController {
+	private final RejectedExceptionsService rejectedExceptionsService;
 
-	@Autowired
-	private ExceptionRepository exceptionRepository;
-
-	@Autowired
-	private RejectedExceptionRepository rejectedExceptionRepository;
-
-	@Autowired
-	private OrgUnitRepository orgUnitRepository;
-
-	@Autowired
-	private BusinessComponentRepository businessComponentRepository;
-
-	private Direction getDirection(String order) {
-		return (order != null && order.toLowerCase().contains("des")) ? Direction.DESC : Direction.ASC;
-	}
-
-	/*
-	 * If the optional parameters are not passed, they are converted to null.
-	 */
 	@GetMapping("/rejectedException")
-	public @ResponseBody ResponseEntity<Object> exceptions( // All exceptions API
+	public RejectedExceptionsResult exceptions( // All exceptions API
 			@RequestParam(required = false) String filterBy, // filter field
 			@RequestParam(required = false) String filterName, // filter value
 			@RequestParam(required = false) String sort, // filter field
@@ -73,124 +35,16 @@ public class RejectedExceptionController {
 			@RequestParam(required = false) ExceptionFilter filter // filter
 	) {
 
-		List<Order> orders = new ArrayList<>();
-		RejectedExceptionsResult result = new RejectedExceptionsResult();
-
-		if (filter.getSeverityOrder() != null) {
-			Direction direction = getDirection(filter.getSeverityOrder());
-			orders.add(new Order(direction, "severity"));
-		}
-
-		if (sort != null) {
-			Direction direction = getDirection(order);
-			orders.add(new Order(direction, sort));
-		}
-
-		PageRequest pageReq = PageRequest.of(page, pageSize, Sort.by(orders));
-		Page<RejectedExceptionBean> pageRes;
-
-		if (filter.getCategory() == null) {
-			filter.setCategory("");
-		}
-
-		if (filter.getSource() == null) {
-			filter.setSource("");
-		}
-
-		if (filter.getSeverity() != null) {
-			ExceptionSeverity severe;
-			switch (filter.getSeverity()) {
-				case "medium":
-					severe = ExceptionSeverity.SEVERITY_MEDIUM;
-					break;
-				case "high":
-					severe = ExceptionSeverity.SEVERITY_HIGH;
-					break;
-				default:
-					severe = ExceptionSeverity.SEVERITY_LOW;
-					break;
-			}
-
-			if (filter.getStatus() != null) {
-				ExceptionStatus status = filter.getStatus().equals("resolved") ? ExceptionStatus.STATUS_RESOLVED : ExceptionStatus.STATUS_UNRESOLVED;
-				pageRes = rejectedExceptionRepository
-						.findBySourceContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndSeverityAndStatus(
-								filter.getSource(), filter.getCategory(), severe, status, pageReq);
-			} else {
-				pageRes = rejectedExceptionRepository
-						.findBySourceContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndSeverity(filter.getSource(),
-								filter.getCategory(), severe, pageReq);
-			}
-		} else if (filter.getStatus() != null) {
-			ExceptionStatus status = filter.getStatus().equals("resolved") ? ExceptionStatus.STATUS_RESOLVED : ExceptionStatus.STATUS_UNRESOLVED;
-			pageRes = rejectedExceptionRepository
-					.findBySourceContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndStatus(filter.getSource(),
-							filter.getCategory(), status, pageReq);
-		} else {
-			pageRes = rejectedExceptionRepository.findBySourceContainingIgnoreCaseAndCategoryContainingIgnoreCase(
-					filter.getSource(), filter.getCategory(), pageReq);
-		}
-
-		result.setRejectedExceptions(pageRes.getContent());
-		result.setTotalElements(pageRes.getTotalElements());
-
-		return new ResponseEntity<>(result, HttpStatus.OK);
+		return rejectedExceptionsService.exceptions(sort, order, page, pageSize, filter);
 	}
 
 	@GetMapping("/rejectedException/{id}")
 	public RejectedExceptionBean getExceptionBean(@PathVariable Long id) {
-		Optional<RejectedExceptionBean> res = rejectedExceptionRepository.findById(id);
-		if (!res.isPresent()) {
-			throw new ExceptionNotFound("Exception with id -> " + id + " does not exist");
-		}
-
-		return res.get();
+		return rejectedExceptionsService.getExceptionBean(id);
 	}
 
 	@DeleteMapping("/rejectedException/{id}")
 	public RejectedExceptionBean updateExceptionBean(@PathVariable Long id) {
-		Optional<RejectedExceptionBean> res = rejectedExceptionRepository.findById(id);
-		if (!res.isPresent()) {
-			throw new ExceptionNotFound("Exception with id -> " + id + " does not exist");
-		}
-
-		RejectedExceptionBean externalException = res.get();
-
-		externalException.setBusinessComponent(externalException.getBusinessComponent().replace(",-", ""));
-		externalException.setOrgUnit(externalException.getOrgUnit().replace(",-", ""));
-
-		OrgUnit orgUnit = orgUnitRepository.findByName(externalException.getOrgUnit());
-		BusinessComponent businessComponent = businessComponentRepository.findByNameAndOrgUnitIdAndIsEnabled(
-				externalException.getBusinessComponent(),
-				(orgUnit != null && orgUnit.getId() != null) ? orgUnit.getId() : -1, true);
-		if (orgUnit == null || businessComponent == null) {
-			if (orgUnit == null && businessComponent != null) {
-				throw new InvalidException("Org-Unit -> " + externalException.getOrgUnit() + " does not Exist");
-			} else if (orgUnit != null) {
-				throw new InvalidException(
-						"Business-Component -> " + externalException.getBusinessComponent() + " does not Exist");
-			} else {
-				throw new InvalidException("Business-Component -> " + externalException.getBusinessComponent()
-						+ " & Org-Unit -> " + externalException.getOrgUnit() + " does not Exist");
-			}
-		}
-
-		AcceptedExceptionBean acceptedException = new AcceptedExceptionBean( // Accepted exception
-				externalException.getSource(), // source
-				externalException.getCategory(), // category
-				externalException.getDescription(), // description
-				externalException.getSeverity(), // severity
-				businessComponent, // businessComponent
-				orgUnit, // orgUnit
-				externalException.getTechnicalDescription(), // technical description
-				null // comment
-		);
-
-		// STEP3: Adding the exception to Database
-		/* AcceptedExceptionBean savedException = */exceptionRepository.save(acceptedException);
-
-		rejectedExceptionRepository.deleteById(id);
-
-		return externalException;
+		return rejectedExceptionsService.updateExceptionBean(id);
 	}
 }
