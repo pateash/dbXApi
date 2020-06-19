@@ -34,8 +34,7 @@ public class OrgUnitService {
 
     public OrgUnit addOrgUnit(OrgUnit orgUnit) {
         OrgUnit newOrgUnit = new OrgUnit(orgUnit.getName());
-        orgUnitRepository.save(newOrgUnit);
-        return newOrgUnit;
+        return orgUnitRepository.save(newOrgUnit);
     }
 
     public String deleteOrgUnit(Long id) {
