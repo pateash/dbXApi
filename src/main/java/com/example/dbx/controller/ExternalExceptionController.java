@@ -54,6 +54,7 @@ public class ExternalExceptionController {
 				severity = ExceptionSeverity.SEVERITY_MEDIUM;
 				break;
 			case "high":
+			default:
 				severity = ExceptionSeverity.SEVERITY_HIGH;
 				break;
 		}
@@ -81,7 +82,7 @@ public class ExternalExceptionController {
 
 			if (orgUnit == null && businessComponent != null) {
 				throw new InvalidException("Org-Unit -> " + externalException.getOrgUnit() + " does not Exist");
-			} else if (businessComponent == null && orgUnit != null) {
+			} else if (orgUnit != null) {
 				throw new InvalidException(
 						"Business-Component -> " + externalException.getBusinessComponent() + " does not Exist");
 			} else {

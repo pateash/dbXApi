@@ -52,9 +52,7 @@ public class AuthRestAPIs {
     JwtProvider jwtProvider;
 
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginForm loginRequest) {
-        System.out.println(loginRequest.getPassword());
-
+    public ResponseEntity<JwtResponse> authenticateUser(@Valid @RequestBody LoginForm loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
@@ -73,8 +71,9 @@ public class AuthRestAPIs {
 
     @PostMapping("/signup")
     public ResponseEntity<String> registerUser(@Valid @RequestBody SignupForm signUpRequest) {
-        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-            return new ResponseEntity<String>("Fail -> Username is already taken!", HttpStatus.BAD_REQUEST);
+        boolean existsByUsername = userRepository.existsByUsername(signUpRequest.getUsername());
+        if (existsByUsername) {
+            return new ResponseEntity<>("Fail -> Username is already taken!", HttpStatus.BAD_REQUEST);
         }
 
         Optional<OrgUnit> orgUnit = orgUnitRepository.findById(signUpRequest.getOrgUnit());
@@ -96,10 +95,7 @@ public class AuthRestAPIs {
     public List<OrgUnit> getAllOrgUnits() {
         List<OrgUnit> units = orgUnitRepository.findAll();
 
-        units.removeIf(o -> {
-            // System.out.println(o);
-            return (o.getName().equals("-"));
-        });
+        units.removeIf(o -> (o.getName().equals("-")));
 
         return units;
     }

@@ -2,7 +2,6 @@ package com.example.dbx.controller;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.math.BigInteger;
@@ -29,9 +28,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import com.example.dbx.exception.ExceptionNotFound;
 import com.example.dbx.model.AcceptedExceptionBean;
 import com.example.dbx.model.BusinessComponent;
@@ -43,36 +39,14 @@ import com.example.dbx.model.ExceptionFilter;
 import com.example.dbx.model.ExceptionSeverity;
 import com.example.dbx.model.ExceptionStatus;
 import com.example.dbx.model.ExceptionSummary;
+import com.example.dbx.model.ExceptionsResult;
 import com.example.dbx.model.OldExceptionBean;
+import com.example.dbx.model.OldExceptionsResult;
 import com.example.dbx.repository.BusinessComponentRepository;
 import com.example.dbx.repository.ExceptionRepository;
 import com.example.dbx.repository.ExceptionSummaryRepository;
 import com.example.dbx.repository.OldExceptionRepository;
-import com.example.dbx.repository.OrgUnitRepository;
 import com.example.dbx.security.services.UserPrinciple;
-
-/**
- * ExceptionsResult
- */
-@NoArgsConstructor
-@AllArgsConstructor
-@Data
-class ExceptionsResult {
-	List<AcceptedExceptionBean> exceptions;
-	Long totalElements;
-
-}
-
-/**
- * OldExceptionsResults
- */
-@NoArgsConstructor
-@AllArgsConstructor
-@Data
-class OldExceptionsResult {
-	List<OldExceptionBean> oldExceptions;
-	Long totalElements;
-}
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -89,9 +63,6 @@ public class ExceptionController {
 	@Autowired
 	private BusinessComponentRepository businessComponentRepository;
 
-	@Autowired
-	private OrgUnitRepository orgUnitRepository;
-	
 	@Autowired
 	private ExceptionSummaryRepository exceptionSummaryRepository;
 
@@ -116,7 +87,7 @@ public class ExceptionController {
 		UserPrinciple userPrinciple = UserPrinciple.extractFromPrincipal(principal);
 		Long id = userPrinciple.getOrgUnit().getId();
 
-		List<Order> orders = new ArrayList<Order>();
+		List<Order> orders = new ArrayList<>();
 		ExceptionsResult result = new ExceptionsResult();
 
 		if (filter.getSeverityOrder() != null) {
@@ -141,29 +112,16 @@ public class ExceptionController {
 		}
 
 		if (filter.getSeverity() != null) {
-			ExceptionSeverity severe;
-			switch (filter.getSeverity()) {
-				case "medium":
-					severe = ExceptionSeverity.SEVERITY_MEDIUM;
-					break;
-				case "high":
-					severe = ExceptionSeverity.SEVERITY_HIGH;
-					break;
-				default:
-					severe = ExceptionSeverity.SEVERITY_LOW;
-					break;
+			ExceptionSeverity severe = ExceptionSeverity.SEVERITY_LOW;
+			if (filter.getSeverity().equals("medium")) {
+				severe = ExceptionSeverity.SEVERITY_MEDIUM;
+			} else if (filter.getSeverity().equals("high")) {
+				severe = ExceptionSeverity.SEVERITY_HIGH;
 			}
 
 			if (filter.getStatus() != null) {
-				ExceptionStatus status;
-				switch (filter.getStatus()) {
-					case "resolved":
-						status = ExceptionStatus.STATUS_RESOLVED;
-						break;
-					default:
-						status = ExceptionStatus.STATUS_UNRESOLVED;
-						break;
-				}
+				ExceptionStatus status = filter.getStatus().equals("resolved") ? ExceptionStatus.STATUS_RESOLVED
+						: ExceptionStatus.STATUS_UNRESOLVED;
 				pageRes = exceptionRepository
 						.findBySourceContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndSeverityAndStatusAndOrgUnitId(
 								filter.getSource(), filter.getCategory(), severe, status, id, pageReq);
@@ -173,15 +131,8 @@ public class ExceptionController {
 								filter.getSource(), filter.getCategory(), severe, id, pageReq);
 			}
 		} else if (filter.getStatus() != null) {
-			ExceptionStatus status;
-			switch (filter.getStatus()) {
-				case "resolved":
-					status = ExceptionStatus.STATUS_RESOLVED;
-					break;
-				default:
-					status = ExceptionStatus.STATUS_UNRESOLVED;
-					break;
-			}
+			ExceptionStatus status = filter.getStatus().equals("resolved") ? ExceptionStatus.STATUS_RESOLVED
+			: ExceptionStatus.STATUS_UNRESOLVED;
 			pageRes = exceptionRepository
 					.findBySourceContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndStatusAndOrgUnitId(
 							filter.getSource(), filter.getCategory(), status, id, pageReq);
@@ -190,10 +141,10 @@ public class ExceptionController {
 					filter.getSource(), filter.getCategory(), id, pageReq);
 		}
 
-		result.exceptions = pageRes.getContent();
-		result.totalElements = pageRes.getTotalElements();
+		result.setExceptions(pageRes.getContent());
+		result.setTotalElements(pageRes.getTotalElements());
 
-		return new ResponseEntity<Object>(result, HttpStatus.OK);
+		return new ResponseEntity<>(result, HttpStatus.OK);
 	}
 
 	@GetMapping("/exception/{id}")
@@ -204,7 +155,6 @@ public class ExceptionController {
 		UserPrinciple userPrinciple = UserPrinciple.extractFromPrincipal(principal);
 		Long orgUnitId = userPrinciple.getOrgUnit().getId();
 
-		// System.out.println("Org Unit - " + userPrinciple.getOrgUnit());
 		Optional<AcceptedExceptionBean> res = exceptionRepository.findByIdAndOrgUnitId(id, orgUnitId);
 		if (!res.isPresent()) {
 			throw new ExceptionNotFound("Exception with id -> " + id + " does not exist");
@@ -222,8 +172,6 @@ public class ExceptionController {
 		UserPrinciple userPrinciple = UserPrinciple.extractFromPrincipal(principal);
 		Long orgUnitId = userPrinciple.getOrgUnit().getId();
 
-		// System.out.println("Org Unit - " + userPrinciple.getOrgUnit());
-
 		Optional<AcceptedExceptionBean> opt = exceptionRepository.findByIdAndOrgUnitId(id, orgUnitId);
 		if (!opt.isPresent()) {
 			throw new ExceptionNotFound("Exception with id -> " + id + " does not exist");
@@ -232,16 +180,12 @@ public class ExceptionController {
 				.findByIdAndOrgUnitIdAndIsEnabled(update.getBusinessComponent().getId(), orgUnitId, true);
 		AcceptedExceptionBean res = opt.get();
 
-		System.out.println("exception old:- " + res);
-
 		long millis = System.currentTimeMillis();
 
 		OldExceptionBean exceptionBean = new OldExceptionBean(res.getId(), res.getSeverity(),
 				res.getBusinessComponent(), res.getTechnicalDescription(), res.getStatus(), res.getComment());
 
-		exceptionBean = oldExceptionRepository.save(exceptionBean); // Saving the old exception in database
-
-		System.out.println("exception save old:- " + exceptionBean);
+		oldExceptionRepository.save(exceptionBean); // Saving the old exception in database
 
 		// Updating the exception
 		res.setSeverity(update.getSeverity());
@@ -250,8 +194,6 @@ public class ExceptionController {
 		res.setTechnicalDescription(update.getTechnicalDescription());
 		res.setComment(update.getComment());
 		res.setUpdateTime(new Timestamp(millis));
-
-		System.out.println("exception new:- " + res);
 
 		// Uncomment this
 		res = exceptionRepository.save(res);
@@ -286,74 +228,65 @@ public class ExceptionController {
 
 		return new OldExceptionsResult(exceptionBeans, pageRes.getTotalElements());
 	}
-	
-	//Change the return type to ExceptionSummary
+
+	// Change the return type to ExceptionSummary
 	@GetMapping("/exception/summary")
-	public ExceptionSummary getExceptionSummary(Principal principal) throws ParseException{
-		//Extracting the org unit ID from UserPrincipal
+	public ExceptionSummary getExceptionSummary(Principal principal) throws ParseException {
+		// Extracting the org unit ID from UserPrincipal
 		UserPrinciple userPrinciple = UserPrinciple.extractFromPrincipal(principal);
 		Long orgUnitId = userPrinciple.getOrgUnit().getId();
-		
-		//Validate the orgUnitID
-		
+
+		// Validate the orgUnitID
+
 		List<ExceptionCategoryCount> exceptionCategoryCount = new ArrayList<>();
-		
+
 		List<Object[]> res = exceptionSummaryRepository.findExceptionCountByCategory(orgUnitId);
-		
-		//Converting the BigInteger value to Long so that it can be stored as per the data type of the variable -> categoryCount
-		for(Object[] obj : res ) {
-			BigInteger x = (BigInteger)obj[1];
-			exceptionCategoryCount.add(new ExceptionCategoryCount((String)obj[0] , x.longValue()));
+
+		// Converting the BigInteger value to Long so that it can be stored as per the
+		// data type of the variable -> categoryCount
+		for (Object[] obj : res) {
+			BigInteger x = (BigInteger) obj[1];
+			exceptionCategoryCount.add(new ExceptionCategoryCount((String) obj[0], x.longValue()));
 		}
-		
-		//Querying the database
+
+		// Querying the database
 		Long totalExceptions = exceptionSummaryRepository.findTotalExceptions(orgUnitId);
 		Long totalUnresolvedExceptions = exceptionSummaryRepository.findTotalUnresolvedExceptions(orgUnitId);
 		Long totalResolvedExceptions = exceptionSummaryRepository.findTotalResolvedExceptions(orgUnitId);
 		Long totalLowSeverityExceptions = exceptionSummaryRepository.findTotalLowSeverityExceptions(orgUnitId);
 		Long totalMediumSeverityExceptions = exceptionSummaryRepository.findTotalMediumSeverityExceptions(orgUnitId);
 		Long totalHighSeverityExceptions = exceptionSummaryRepository.findTotalHighSeverityExceptions(orgUnitId);
-		
+
 		/**************************************************************************************************************/
-		//Code for past 7 days severity count day wise
+		// Code for past 7 days severity count day wise
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Calendar cal = Calendar.getInstance();
-		
+
 		List<DayWiseSeverityCountWrapper> dayWiseSeverityWrapper = new ArrayList<>();
-		
+
 		String after = null;
 		String before = null;
-		
-		for(int i=1;i<=7;i++) {
+
+		for (int i = 1; i <= 7; i++) {
 			after = dateFormat.format(cal.getTime());
 			cal.add(Calendar.DATE, -1);
 			before = dateFormat.format(cal.getTime());
-			
-			List<Object[]> response1 = exceptionSummaryRepository.findExceptionCountByDate(dateFormat.parse(before) , dateFormat.parse(after) , orgUnitId);
+
+			List<Object[]> response1 = exceptionSummaryRepository.findExceptionCountByDate(dateFormat.parse(before),
+					dateFormat.parse(after), orgUnitId);
 			List<DayWiseSeverityCount> dayWiseCount = new ArrayList<>();
-			
-			for(Object[] obj : response1) {
-				BigInteger x = (BigInteger)obj[1];
-				dayWiseCount.add(new DayWiseSeverityCount((Integer)obj[0] , x.longValue()));
+
+			for (Object[] obj : response1) {
+				BigInteger x = (BigInteger) obj[1];
+				dayWiseCount.add(new DayWiseSeverityCount((Integer) obj[0], x.longValue()));
 			}
-			
-			dayWiseSeverityWrapper.add(new DayWiseSeverityCountWrapper(before , dayWiseCount));
+
+			dayWiseSeverityWrapper.add(new DayWiseSeverityCountWrapper(before, dayWiseCount));
 		}
 		/**********************************************************************************************************/
-		//Creating the response object using constructor
-		ExceptionSummary exceptionSummary = new ExceptionSummary(
-				totalExceptions,
-				totalResolvedExceptions,
-				totalUnresolvedExceptions,
-				totalLowSeverityExceptions,
-				totalMediumSeverityExceptions,
-				totalHighSeverityExceptions,
-				exceptionCategoryCount,
-				dayWiseSeverityWrapper
-			);
-		
-		//Sending the response
-		return exceptionSummary;
-
+		// Creating the response object using constructor
+		return new ExceptionSummary(totalExceptions, totalResolvedExceptions,
+				totalUnresolvedExceptions, totalLowSeverityExceptions, totalMediumSeverityExceptions,
+				totalHighSeverityExceptions, exceptionCategoryCount, dayWiseSeverityWrapper);
 	}
 }

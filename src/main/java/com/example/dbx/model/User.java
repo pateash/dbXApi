@@ -37,10 +37,6 @@ public class User implements Serializable {
     @NotBlank
     @Size(min = 1, max = 50)
     private String username;
-
-    /* @NotBlank
-    @Size(min = 1, max = 50)
-    private String orgUnit; */
     
 	@ManyToOne
 	@JoinColumn(name = "org_unit_id")

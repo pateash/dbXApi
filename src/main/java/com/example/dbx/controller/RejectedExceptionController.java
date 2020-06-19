@@ -22,12 +22,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import lombok.Data;
-
 import com.example.dbx.exception.ExceptionNotFound;
 import com.example.dbx.exception.InvalidException;
-// import com.example.dbx.exception.InvalidQueryException;
 import com.example.dbx.model.RejectedExceptionBean;
+import com.example.dbx.model.RejectedExceptionsResult;
 import com.example.dbx.model.ExceptionFilter;
 import com.example.dbx.model.ExceptionSeverity;
 import com.example.dbx.model.ExceptionStatus;
@@ -38,16 +36,6 @@ import com.example.dbx.repository.BusinessComponentRepository;
 import com.example.dbx.repository.ExceptionRepository;
 import com.example.dbx.repository.OrgUnitRepository;
 import com.example.dbx.repository.RejectedExceptionRepository;
-
-/**
- * RejectedExceptionsResult
- */
-@Data
-class RejectedExceptionsResult {
-	List<RejectedExceptionBean> rejectedExceptions;
-	Long totalElements;
-
-}
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -85,35 +73,18 @@ public class RejectedExceptionController {
 			@RequestParam(required = false) ExceptionFilter filter // filter
 	) {
 
-		System.out.println(sort + " - " + order);
-		System.out.println(filter);
-		List<Order> orders = new ArrayList<Order>();
+		List<Order> orders = new ArrayList<>();
 		RejectedExceptionsResult result = new RejectedExceptionsResult();
 
 		if (filter.getSeverityOrder() != null) {
-			System.out.println("severtiy order" + filter.getSeverityOrder());
 			Direction direction = getDirection(filter.getSeverityOrder());
 			orders.add(new Order(direction, "severity"));
 		}
 
 		if (sort != null) {
-			System.out.println(sort + " - " + order);
 			Direction direction = getDirection(order);
 			orders.add(new Order(direction, sort));
 		}
-
-		// Switch case expression need to be a constant, it cannot be null. Hence
-		// writing filterBy=null case outside the switch case
-		// if (filterBy == null) {
-		/*
-		 * if (filter == null) { Page<RejectedExceptionBean> res =
-		 * rejectedExceptionRepository .findAll(PageRequest.of(page, pageSize,
-		 * Sort.by(orders))); result.exceptions = res.getContent(); result.totalElements
-		 * = res.getTotalElements(); return new ResponseEntity<Object>(result,
-		 * HttpStatus.OK); }
-		 */
-
-		System.out.println(orders + " - " + orders.size());
 
 		PageRequest pageReq = PageRequest.of(page, pageSize, Sort.by(orders));
 		Page<RejectedExceptionBean> pageRes;
@@ -141,15 +112,7 @@ public class RejectedExceptionController {
 			}
 
 			if (filter.getStatus() != null) {
-				ExceptionStatus status;
-				switch (filter.getStatus()) {
-					case "resolved":
-						status = ExceptionStatus.STATUS_RESOLVED;
-						break;
-					default:
-						status = ExceptionStatus.STATUS_UNRESOLVED;
-						break;
-				}
+				ExceptionStatus status = filter.getStatus().equals("resolved") ? ExceptionStatus.STATUS_RESOLVED : ExceptionStatus.STATUS_UNRESOLVED;
 				pageRes = rejectedExceptionRepository
 						.findBySourceContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndSeverityAndStatus(
 								filter.getSource(), filter.getCategory(), severe, status, pageReq);
@@ -159,15 +122,7 @@ public class RejectedExceptionController {
 								filter.getCategory(), severe, pageReq);
 			}
 		} else if (filter.getStatus() != null) {
-			ExceptionStatus status;
-			switch (filter.getStatus()) {
-				case "resolved":
-					status = ExceptionStatus.STATUS_RESOLVED;
-					break;
-				default:
-					status = ExceptionStatus.STATUS_UNRESOLVED;
-					break;
-			}
+			ExceptionStatus status = filter.getStatus().equals("resolved") ? ExceptionStatus.STATUS_RESOLVED : ExceptionStatus.STATUS_UNRESOLVED;
 			pageRes = rejectedExceptionRepository
 					.findBySourceContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndStatus(filter.getSource(),
 							filter.getCategory(), status, pageReq);
@@ -176,44 +131,10 @@ public class RejectedExceptionController {
 					filter.getSource(), filter.getCategory(), pageReq);
 		}
 
-		// switch (filterBy) {
-		// case "category":
-		// pageRes = rejectedExceptionRepository.findByCategoryContaining(filterName,
-		// pageReq);
-		// break;
+		result.setRejectedExceptions(pageRes.getContent());
+		result.setTotalElements(pageRes.getTotalElements());
 
-		// case "source":
-		// pageRes = rejectedExceptionRepository
-		// .findBySourceContainingIgnoreCaseAndCategoryContainingIgnoreCase(filterName,
-		// "", pageReq);
-		// break;
-
-		// case "severity":
-		// ExceptionSeverity severe;
-		// switch (filterName.toLowerCase()) {
-		// case "medium":
-		// severe = ExceptionSeverity.SEVERITY_MEDIUM;
-		// break;
-		// case "high":
-		// severe = ExceptionSeverity.SEVERITY_HIGH;
-		// break;
-		// default:
-		// severe = ExceptionSeverity.SEVERITY_LOW;
-		// break;
-		// }
-
-		// pageRes = rejectedExceptionRepository.findBySeverity(severe, pageReq);
-		// break;
-
-		// default:
-		// pageRes = rejectedExceptionRepository.findAll(PageRequest.of(page,
-		// pageSize));
-		// }
-
-		result.rejectedExceptions = pageRes.getContent();
-		result.totalElements = pageRes.getTotalElements();
-
-		return new ResponseEntity<Object>(result, HttpStatus.OK);
+		return new ResponseEntity<>(result, HttpStatus.OK);
 	}
 
 	@GetMapping("/rejectedException/{id}")
@@ -245,7 +166,7 @@ public class RejectedExceptionController {
 		if (orgUnit == null || businessComponent == null) {
 			if (orgUnit == null && businessComponent != null) {
 				throw new InvalidException("Org-Unit -> " + externalException.getOrgUnit() + " does not Exist");
-			} else if (businessComponent == null && orgUnit != null) {
+			} else if (orgUnit != null) {
 				throw new InvalidException(
 						"Business-Component -> " + externalException.getBusinessComponent() + " does not Exist");
 			} else {

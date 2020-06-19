@@ -1,13 +1,13 @@
 package com.example.dbx.controller;
 
 import java.security.Principal;
-import java.util.List;
 import java.util.Optional;
 
 import javax.validation.Valid;
 
 import com.example.dbx.exception.InvalidException;
 import com.example.dbx.model.BusinessComponent;
+import com.example.dbx.model.BusinessComponentsResult;
 import com.example.dbx.model.OrgUnit;
 import com.example.dbx.model.UserRole;
 import com.example.dbx.repository.BusinessComponentRepository;
@@ -30,19 +30,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import lombok.Data;
-
-@Data
-class BusinessComponentsResult {
-    List<BusinessComponent> businessComponents;
-    Long totalElements;
-
-    public BusinessComponentsResult(List<BusinessComponent> businessComponents, Long totalElements) {
-        this.businessComponents = businessComponents;
-        this.totalElements = totalElements;
-    }
-}
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -68,10 +55,8 @@ public class BusinessComponentApi {
             pageResult = businessComponentRepository.findByOrgUnitId(userPrinciple.getOrgUnit().getId(), pageRequest);
         }
 
-        BusinessComponentsResult result = new BusinessComponentsResult(pageResult.getContent(),
+        return new BusinessComponentsResult(pageResult.getContent(),
                 pageResult.getTotalElements());
-
-        return result;
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
