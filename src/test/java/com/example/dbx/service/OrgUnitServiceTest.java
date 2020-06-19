@@ -37,7 +37,7 @@ class OrgUnitServiceTest {
     }
 
     void testDeleteOrgUnit() {
-        when(orgUnitRepository.deleteById(any(Long.class))).thenReturn(Void);
+        // when(orgUnitRepository.deleteById(any(Long.class))).thenReturn(Void);
         String res = orgUnitService.deleteOrgUnit(new Long(1));
         assertEquals("Org Unit deleted successfully!", res);
     }
