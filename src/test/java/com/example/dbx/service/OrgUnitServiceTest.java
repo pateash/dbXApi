@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.example.dbx.model.OrgUnit;
 import com.example.dbx.model.OrgUnitsResult;
@@ -54,7 +55,7 @@ class OrgUnitServiceTest {
 
         assertNotNull(res);
         assertNotNull(res.getOrgUnits());
-        assertEquals(res.getTotalElements(), new Long(0));
+        assertEquals(new Long(0), res.getTotalElements());
     }
 
     private OrgUnit dummyOrgUnit() {
@@ -64,6 +65,10 @@ class OrgUnitServiceTest {
     }
 
     private Page<OrgUnit> dummyPage() {
-        return new PageImpl<>(new ArrayList<>());
+        List<OrgUnit> orgUnits = new ArrayList<>();
+
+        orgUnits.add(new OrgUnit("-"));
+
+        return new PageImpl<>(orgUnits);
     }
 }

@@ -3,7 +3,6 @@ package com.example.dbx.service;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import com.example.dbx.model.OrgUnit;
 import com.example.dbx.model.OrgUnitsResult;
 import com.example.dbx.repository.OrgUnitRepository;
@@ -26,10 +25,12 @@ public class OrgUnitService {
 
         pageResult = orgUnitRepository.findAll(pageRequest);
         List<OrgUnit> units = new ArrayList<>(pageResult.getContent());
+        Long totalElements = pageResult.getTotalElements();
 
         units.removeIf(o -> o.getName().equals("-"));
+        totalElements--;
 
-        return new OrgUnitsResult(units, pageResult.getTotalElements());
+        return new OrgUnitsResult(units, totalElements);
     }
 
     public OrgUnit addOrgUnit(OrgUnit orgUnit) {
