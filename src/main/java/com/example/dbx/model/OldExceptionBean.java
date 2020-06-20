@@ -58,4 +58,6 @@ public class OldExceptionBean {
 		this.updateTime = new Timestamp(System.currentTimeMillis());
 		this.comment = comment;
 	} */
+	
+	
 }

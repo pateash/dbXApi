@@ -11,4 +11,5 @@ import lombok.NoArgsConstructor;
 public class ExceptionCategoryCount {
 	private String category;
 	private Long categoryCount;
+	
 }
