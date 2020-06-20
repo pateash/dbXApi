@@ -8,11 +8,13 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 //All the rejected exceptions will be stored as an object of this class in the rejected exceptions database.
 @Data
+@AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "rejected_exceptions")
@@ -44,7 +46,7 @@ public class RejectedExceptionBean {
 
 	private String comment; // We have to fill, initially it'll be null by default
 
-	public RejectedExceptionBean(String source, String category, String description, ExceptionSeverity severity,
+	/* public RejectedExceptionBean(String source, String category, String description, ExceptionSeverity severity,
 			String businessComponent, String orgUnit, String technicalDescription, String comment) {
 		super();
 		this.timeGenerated = new Timestamp(System.currentTimeMillis());
@@ -57,5 +59,5 @@ public class RejectedExceptionBean {
 		this.technicalDescription = technicalDescription;
 		this.status = ExceptionStatus.STATUS_UNRESOLVED;
 		this.comment = comment;
-	}
+	} */
 }

@@ -13,9 +13,11 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@AllArgsConstructor
 @Data
 @NoArgsConstructor
 @Entity
@@ -45,9 +47,8 @@ public class OldExceptionBean {
 
 	private String comment; // We have to fill, initially it'll be null by default
 
-	public OldExceptionBean(Long exceptionId, ExceptionSeverity severity, BusinessComponent businessComponent,
+	/* public OldExceptionBean(Long exceptionId, ExceptionSeverity severity, BusinessComponent businessComponent,
 			String technicalDescription, ExceptionStatus status, String comment) {
-		super();
 		this.id = null;
 		this.exceptionId = exceptionId;
 		this.severity = severity;
@@ -56,5 +57,5 @@ public class OldExceptionBean {
 		this.status = status;
 		this.updateTime = new Timestamp(System.currentTimeMillis());
 		this.comment = comment;
-	}
+	} */
 }

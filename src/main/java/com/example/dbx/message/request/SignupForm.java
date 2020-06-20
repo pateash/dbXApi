@@ -3,8 +3,10 @@ package com.example.dbx.message.request;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
+import lombok.Builder;
 import lombok.Data;
 
+@Builder
 @Data
 public class SignupForm {
     @NotBlank

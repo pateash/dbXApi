@@ -11,14 +11,11 @@ import com.example.dbx.model.BusinessComponent;
 
 @Repository
 public interface BusinessComponentRepository extends JpaRepository<BusinessComponent, Long> {
-    // Optional<OrgUnit> findByName(String name);
     Page<BusinessComponent> findAll(Pageable page);
 
     Page<BusinessComponent> findByOrgUnitId(Long id, Pageable page);
 
     Optional<BusinessComponent> findOneByIdAndOrgUnitId(Long id, Long orgUnitId);
-
-    Optional<BusinessComponent> findOneById(Long id);
 
     BusinessComponent findByName(String name);
 

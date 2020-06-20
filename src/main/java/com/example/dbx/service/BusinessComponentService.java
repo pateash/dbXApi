@@ -23,6 +23,14 @@ public class BusinessComponentService {
     private final BusinessComponentRepository businessComponentRepository;
     private final OrgUnitRepository orgUnitRepository;
 
+    public static String notExistsMsg(String id) {
+        return String.format("Business-Component -> %s does not Exist", id);
+    }
+
+    public static String notExistsMsg(Long id) {
+        return notExistsMsg(id.toString());
+    }
+
     public BusinessComponentsResult getAllBusinessComponent(int page, int pageSize, UserRole userRole, Long orgUnitId) {
         Pageable pageRequest = PageRequest.of(page, pageSize);
         Page<BusinessComponent> pageResult;
@@ -40,13 +48,13 @@ public class BusinessComponentService {
         Optional<BusinessComponent> component;
 
         if (userRole == UserRole.ROLE_ADMIN) {
-            component = businessComponentRepository.findOneById(id);
+            component = businessComponentRepository.findById(id);
         } else {
             component = businessComponentRepository.findOneByIdAndOrgUnitId(id, orgUnitId);
         }
 
         if (!component.isPresent()) {
-            throw new InvalidException("Business-Component -> " + id + " does not Exist");
+            throw new InvalidException(BusinessComponentService.notExistsMsg(id));
         }
 
         return component.get();
@@ -55,7 +63,7 @@ public class BusinessComponentService {
     public BusinessComponent addBusinessComponent(BusinessComponent businessComponent, Long orgUnitId) {
         Optional<OrgUnit> orgUnit = orgUnitRepository.findById(orgUnitId);
         if (!orgUnit.isPresent()) {
-            throw new InvalidException("Org-Unit -> " + businessComponent.getOrgUnitCreateId() + " does not Exist");
+            throw new InvalidException(OrgUnitService.notExistsMsg(orgUnitId));
         }
 
         return businessComponentRepository.save(new BusinessComponent(businessComponent.getName(), orgUnit.get()));
@@ -64,14 +72,12 @@ public class BusinessComponentService {
     public BusinessComponent updateBusinessComponent(Long id, BusinessComponent businessComponentUpdate) {
         Optional<BusinessComponent> businessComponent = businessComponentRepository.findById(id);
         if (!businessComponent.isPresent()) {
-            throw new InvalidException("Business-Component -> " + id + " does not Exist");
+            throw new InvalidException(BusinessComponentService.notExistsMsg(id));
         }
+
         BusinessComponent newBusinessComponent = businessComponent.get();
-
         newBusinessComponent.setIsEnabled(businessComponentUpdate.getIsEnabled());
-        businessComponentRepository.save(newBusinessComponent);
-
-        return newBusinessComponent;
+        return businessComponentRepository.save(newBusinessComponent);
     }
 
     public String deleteBusinessComponent(Long id) {

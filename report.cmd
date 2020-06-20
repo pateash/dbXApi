@@ -1,0 +1,1 @@
+./mvnw test jacoco:report
