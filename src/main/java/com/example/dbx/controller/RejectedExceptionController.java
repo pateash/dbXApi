@@ -26,15 +26,12 @@ public class RejectedExceptionController {
 
 	@GetMapping("/rejectedException")
 	public RejectedExceptionsResult exceptions( // All exceptions API
-			@RequestParam(required = false) String filterBy, // filter field
-			@RequestParam(required = false) String filterName, // filter value
 			@RequestParam(required = false) String sort, // filter field
 			@RequestParam(required = false) String order, // filter value
 			@RequestParam(defaultValue = "0", required = false) Integer page, // page no.
 			@RequestParam(defaultValue = "5", required = false) Integer pageSize, // page size
 			@RequestParam(required = false) ExceptionFilter filter // filter
 	) {
-
 		return rejectedExceptionsService.exceptions(sort, order, page, pageSize, filter);
 	}
 

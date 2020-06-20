@@ -13,10 +13,12 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 //This is the exception that we will store in the database as accepted exception.
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Data

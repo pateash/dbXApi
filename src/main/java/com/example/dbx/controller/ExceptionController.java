@@ -33,8 +33,6 @@ public class ExceptionController {
 
 	@GetMapping("/exception")
 	public ExceptionsResult exceptions( // All exceptions API
-			@RequestParam(required = false) String filterBy, // filter field
-			@RequestParam(required = false) String filterName, // filter value
 			@RequestParam(required = false) String sort, // filter field
 			@RequestParam(required = false) String order, // filter value
 			@RequestParam(defaultValue = "0", required = false) Integer page, // page no.

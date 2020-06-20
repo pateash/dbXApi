@@ -12,8 +12,14 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Data
 @Entity
 @Table(name = "business_components", uniqueConstraints = {
@@ -22,10 +28,6 @@ public class BusinessComponent {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
-
-    public BusinessComponent() {
-        super();
-    }
 
     @NotBlank
     @Size(min = 1, max = 50)
@@ -39,10 +41,4 @@ public class BusinessComponent {
 
     @Transient
     private Long orgUnitCreateId;
-
-    public BusinessComponent(String name, OrgUnit orgUnit) {
-        this.name = name;
-        this.orgUnit = orgUnit;
-        this.isEnabled = false;
-    }
 }

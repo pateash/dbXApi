@@ -95,8 +95,7 @@ public class ExternalExceptionService {
 				orgUnit, // orgUnit
 				externalException.getTechnicalDescription(), // technical description
 				ExceptionStatus.STATUS_UNRESOLVED, // status
-				null,
-				null // comment
+				null, null // comment
 		);
 
 		// STEP3: Adding the exception to Database
