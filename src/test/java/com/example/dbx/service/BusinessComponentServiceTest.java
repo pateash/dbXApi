@@ -47,8 +47,7 @@ public class BusinessComponentServiceTest {
     public void testGetAllBusinessComponentForAdmin() {
         when(businessComponentRepository.findAll(any(Pageable.class))).thenReturn(dummyPage(1));
 
-        BusinessComponentsResult res = businessComponentService.getAllBusinessComponent(1, 1, UserRole.ROLE_ADMIN,
-                0l);
+        BusinessComponentsResult res = businessComponentService.getAllBusinessComponent(1, 1, UserRole.ROLE_ADMIN, 0l);
 
         assertNotNull(res);
         assertNotNull(res.getBusinessComponents());
@@ -61,8 +60,7 @@ public class BusinessComponentServiceTest {
         when(businessComponentRepository.findByOrgUnitId(any(Long.class), any(Pageable.class)))
                 .thenReturn(dummyPage(2));
 
-        BusinessComponentsResult res = businessComponentService.getAllBusinessComponent(1, 1, UserRole.ROLE_USER,
-                0l);
+        BusinessComponentsResult res = businessComponentService.getAllBusinessComponent(1, 1, UserRole.ROLE_USER, 0l);
 
         assertNotNull(res);
         assertNotNull(res.getBusinessComponents());
@@ -74,8 +72,7 @@ public class BusinessComponentServiceTest {
     public void testGetBusinessComponentForAdmin() {
         when(businessComponentRepository.findById(any(Long.class))).thenReturn(dummyBusinessComponent(true));
 
-        BusinessComponent res = businessComponentService.getBusinessComponent(1l, UserRole.ROLE_ADMIN,
-                0l);
+        BusinessComponent res = businessComponentService.getBusinessComponent(1l, UserRole.ROLE_ADMIN, 0l);
 
         assertNotNull(res);
     }
@@ -85,8 +82,7 @@ public class BusinessComponentServiceTest {
         when(businessComponentRepository.findOneByIdAndOrgUnitId(any(Long.class), any(Long.class)))
                 .thenReturn(dummyBusinessComponent(true));
 
-        BusinessComponent res = businessComponentService.getBusinessComponent(1l, UserRole.ROLE_USER,
-                0l);
+        BusinessComponent res = businessComponentService.getBusinessComponent(1l, UserRole.ROLE_USER, 0l);
 
         assertNotNull(res);
 
@@ -115,7 +111,7 @@ public class BusinessComponentServiceTest {
         when(businessComponentRepository.save(any(BusinessComponent.class)))
                 .thenReturn(dummyBusinessComponent(true).get());
 
-        BusinessComponent businessComponent = new BusinessComponent("test", null);
+        BusinessComponent businessComponent = BusinessComponent.builder().name("name").build();
         BusinessComponent res = businessComponentService.addBusinessComponent(businessComponent, 1l);
 
         assertNotNull(res);
@@ -125,7 +121,7 @@ public class BusinessComponentServiceTest {
     @Test
     public void testAddBusinessComponentOrgUnitNull() {
         Long id = 1l;
-        BusinessComponent businessComponent = new BusinessComponent("test", null);
+        BusinessComponent businessComponent = BusinessComponent.builder().name("name").build();
 
         when(orgUnitRepository.findById(any(Long.class))).thenReturn(dummyOrgUnit(null));
         when(businessComponentRepository.save(any(BusinessComponent.class)))
@@ -147,7 +143,7 @@ public class BusinessComponentServiceTest {
         when(businessComponentRepository.save(any(BusinessComponent.class)))
                 .thenReturn(dummyBusinessComponent(true).get());
 
-        BusinessComponent businessComponent = new BusinessComponent("test", null);
+        BusinessComponent businessComponent = BusinessComponent.builder().name("test").build();
         BusinessComponent res = businessComponentService.updateBusinessComponent(1l, businessComponent);
 
         assertNotNull(res);
@@ -157,7 +153,7 @@ public class BusinessComponentServiceTest {
     @Test
     public void testUpdateBusinessComponentNoFound() {
         Long id = 1l;
-        BusinessComponent businessComponent = new BusinessComponent("test", null);
+        BusinessComponent businessComponent = BusinessComponent.builder().name("test").build();
 
         when(businessComponentRepository.findById(any(Long.class))).thenReturn(dummyBusinessComponent(null));
         when(businessComponentRepository.save(any(BusinessComponent.class)))
@@ -189,7 +185,8 @@ public class BusinessComponentServiceTest {
     }
 
     private Optional<BusinessComponent> dummyBusinessComponent(Boolean isNull) {
-        BusinessComponent businessComponent = new BusinessComponent("test", new OrgUnit("test"));
+        BusinessComponent businessComponent = BusinessComponent.builder().name("test").orgUnit(new OrgUnit("teet"))
+                .build();
         businessComponent.setId(1l);
         Optional<BusinessComponent> res = isNull == null ? Optional.empty() : Optional.of(businessComponent);
         return res;

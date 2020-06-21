@@ -10,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+@Data
 @Getter
 @Setter
 public class UserPrinciple implements UserDetails {
@@ -101,8 +103,6 @@ public class UserPrinciple implements UserDetails {
 
     public static UserPrinciple extractFromPrincipal(Principal principal) {
         UsernamePasswordAuthenticationToken t = (UsernamePasswordAuthenticationToken) principal;
-        UserPrinciple up = (UserPrinciple) t.getPrincipal();
-
-        return up;
+        return (UserPrinciple) t.getPrincipal();
     }
 }

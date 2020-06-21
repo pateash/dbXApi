@@ -9,10 +9,12 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 //All the rejected exceptions will be stored as an object of this class in the rejected exceptions database.
+@Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

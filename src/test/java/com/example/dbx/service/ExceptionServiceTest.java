@@ -37,7 +37,6 @@ import com.example.dbx.repository.OldExceptionRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-
 public class ExceptionServiceTest {
 	
 	/************************************************************************************************************/
@@ -45,16 +44,16 @@ public class ExceptionServiceTest {
 	
 	@InjectMocks
 	private ExceptionService exceptionService;
-	
+
 	@Mock
 	private ExceptionSummaryRepository exceptionSummaryRepository;
-	
+
 	@Mock
 	private ExceptionRepository exceptionRepository;
-	
-	@Mock 
+
+	@Mock
 	private BusinessComponentRepository businessComponentRepository;
-	
+
 	@Mock
 	private OldExceptionRepository oldExceptionRepository;
 	
@@ -79,11 +78,33 @@ public class ExceptionServiceTest {
     	when(exceptionSummaryRepository.findTotalMediumSeverityExceptions(anyLong())).thenReturn(dummyCount);
     	when(exceptionSummaryRepository.findTotalHighSeverityExceptions(anyLong())).thenReturn(dummyCount);
     	
+
+	@BeforeEach
+	public void init() {
+		MockitoAnnotations.initMocks(this);
+	}
+
+	@Test
+	void testGetExceptionSummary() throws ParseException {
+		Long dummyOrgUnitId = 1l;
+		Long dummyCount = 2L;
+		List<Object[]> dummyObjList = new ArrayList<>();
+
+		when(exceptionSummaryRepository.findTotalExceptions(anyLong())).thenReturn(dummyCount);
+		when(exceptionSummaryRepository.findTotalUnresolvedExceptions(anyLong())).thenReturn(dummyCount);
+		when(exceptionSummaryRepository.findTotalResolvedExceptions(anyLong())).thenReturn(dummyCount);
+		when(exceptionSummaryRepository.findTotalLowSeverityExceptions(anyLong())).thenReturn(dummyCount);
+		when(exceptionSummaryRepository.findTotalMediumSeverityExceptions(anyLong())).thenReturn(dummyCount);
+		when(exceptionSummaryRepository.findTotalHighSeverityExceptions(anyLong())).thenReturn(dummyCount);
+
+
 		when(exceptionSummaryRepository.findExceptionCountByCategory(anyLong())).thenReturn(dummyObjList);
-		when(exceptionSummaryRepository.findExceptionCountByDate(any(Date.class), any(Date.class) , anyLong())).thenReturn(dummyObjList);
-		
+		when(exceptionSummaryRepository.findExceptionCountByDate(any(Date.class), any(Date.class), anyLong()))
+				.thenReturn(dummyObjList);
+
 		ExceptionSummary exceptionSummary = exceptionService.getExceptionSummary(dummyOrgUnitId);
 		assertNotNull(exceptionSummary);
+
     }
     
     @Test
@@ -145,7 +166,7 @@ public class ExceptionServiceTest {
         		"sample technical description", //technical description
         		ExceptionStatus.STATUS_UNRESOLVED,
         		null, //timestamp
-        		null
+        		null //comment
         		));
         
         oldExceptionBeans.add(new OldExceptionBean(
@@ -157,10 +178,81 @@ public class ExceptionServiceTest {
         		"sample technical description 2", //technical description
         		ExceptionStatus.STATUS_UNRESOLVED,
         		null, //timestamp
-        		null
+        		null //comment
         		));
 
         return new PageImpl<>(oldExceptionBeans);
     }
     /**********************************************************************************************************************/
+
+	}
+
+	@Test
+	void testGetExceptionVersions() {
+
+		AcceptedExceptionBean dummyAcceptedExceptionBean = createAcceptedExceptionBean();
+
+		Optional<AcceptedExceptionBean> dummyOptionalAcceptedExceptionBean = Optional.of(dummyAcceptedExceptionBean);
+
+		when(exceptionRepository.findByIdAndOrgUnitId(anyLong(), anyLong()))
+				.thenReturn(dummyOptionalAcceptedExceptionBean);
+		when(oldExceptionRepository.findByExceptionId(anyLong(), any(Pageable.class)))
+				.thenReturn(dummyOldExceptionBeanPage());
+
+		OldExceptionsResult res = exceptionService.getExceptionVersions(1l, 5l, 0, 5);
+		assertEquals(res.getOldExceptions(), dummyOldExceptionBeanPage().getContent());
+		// assertEquals(res.getTotalElements() , dummyPage().getTotalElements());
+		// //successful
+	}
+
+	private AcceptedExceptionBean createAcceptedExceptionBean() {
+		OrgUnit dummyOrgUnit = new OrgUnit("HR");
+		dummyOrgUnit.setId(5l);
+
+		BusinessComponent dummyBusinessComponent = BusinessComponent.builder().name("component1").id(1l).build();
+		AcceptedExceptionBean dummyAcceptedExceptionBean = new AcceptedExceptionBean(1l, // id
+				new Timestamp(System.currentTimeMillis()), // timestamp
+				"App1", // source
+				"runtime", // category
+				"sample description", // description
+				ExceptionSeverity.SEVERITY_LOW, // severity (enum)
+				dummyBusinessComponent, // business component
+				dummyOrgUnit, // org unit
+				"sample technical description", // technical description
+				ExceptionStatus.STATUS_UNRESOLVED, // exception status (enum)
+				null, // update timestamp
+				null // comment
+		);
+
+		return dummyAcceptedExceptionBean;
+	}
+
+	private Page<OldExceptionBean> dummyOldExceptionBeanPage() {
+		List<OldExceptionBean> oldExceptionBeans = new ArrayList<>();
+
+		OrgUnit dummyOrgUnit = new OrgUnit("HR");
+		dummyOrgUnit.setId(5l);
+		BusinessComponent dummyBusinessComponent = BusinessComponent.builder().name("component1").orgUnit(dummyOrgUnit)
+				.build();
+
+		oldExceptionBeans.add(new OldExceptionBean(10l, // version primary key
+				1l, // id of exception
+				2, // int version
+				ExceptionSeverity.SEVERITY_LOW, // exception severity enum
+				dummyBusinessComponent, // business component
+				"sample technical description", // technical description
+				ExceptionStatus.STATUS_UNRESOLVED, null, // timestamp
+				null));
+
+		oldExceptionBeans.add(new OldExceptionBean(11l, // version primary key
+				1l, // id of exception
+				1, // int version
+				ExceptionSeverity.SEVERITY_MEDIUM, // exception severity enum
+				dummyBusinessComponent, // business component
+				"sample technical description 2", // technical description
+				ExceptionStatus.STATUS_UNRESOLVED, null, // timestamp
+				null));
+
+		return new PageImpl<>(oldExceptionBeans);
+	}
 }

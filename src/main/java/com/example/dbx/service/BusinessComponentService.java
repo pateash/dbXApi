@@ -66,7 +66,8 @@ public class BusinessComponentService {
             throw new InvalidException(OrgUnitService.notExistsMsg(orgUnitId));
         }
 
-        return businessComponentRepository.save(new BusinessComponent(businessComponent.getName(), orgUnit.get()));
+        return businessComponentRepository
+                .save(new BusinessComponent(null, businessComponent.getName(), orgUnit.get(), false, 0l));
     }
 
     public BusinessComponent updateBusinessComponent(Long id, BusinessComponent businessComponentUpdate) {
