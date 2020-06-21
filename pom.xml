@@ -17,14 +17,6 @@
 	<properties>
 		<java.version>1.8</java.version>
 	</properties>
-
-	<distributionManagement>
-		   <repository>
-			<id>github</id>
-     			<name>dbXApi Apache Maven Packages</name>
-     			<url>https://maven.pkg.github.com/ashishpatel0720/dbXApi</url>
-   		</repository>
-	</distributionManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
