@@ -33,13 +33,16 @@ import com.example.dbx.repository.BusinessComponentRepository;
 import com.example.dbx.repository.ExceptionRepository;
 import com.example.dbx.repository.ExceptionSummaryRepository;
 import com.example.dbx.repository.OldExceptionRepository;
-import com.fasterxml.jackson.databind.util.EnumValues;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 public class ExceptionServiceTest {
+	
+	/************************************************************************************************************/
+	//MOCKS AND SIMILAR ACTIONS
+	
 	@InjectMocks
 	private ExceptionService exceptionService;
 	
@@ -59,6 +62,9 @@ public class ExceptionServiceTest {
     public void init() {
         MockitoAnnotations.initMocks(this);
     }
+    
+    /*******************************************************************************************************************/
+    //TESTS
     
     @Test
     void testGetExceptionSummary() throws ParseException {
@@ -95,6 +101,10 @@ public class ExceptionServiceTest {
     	//assertEquals(res.getTotalElements() , dummyPage().getTotalElements()); //successful
     }
     
+    /*******************************************************************************************************************/
+    //HELPER FUNCTIONS
+    
+    //used by testGetExceptionVersions()
     private AcceptedExceptionBean createAcceptedExceptionBean() {
     	OrgUnit dummyOrgUnit = new OrgUnit("HR");
     	dummyOrgUnit.setId(5l);
@@ -118,6 +128,7 @@ public class ExceptionServiceTest {
     	return dummyAcceptedExceptionBean;
     }
     
+    //used by testGetExceptionVersions()
     private Page<OldExceptionBean> dummyOldExceptionBeanPage() {
         List<OldExceptionBean> oldExceptionBeans = new ArrayList<>();
         
@@ -151,4 +162,5 @@ public class ExceptionServiceTest {
 
         return new PageImpl<>(oldExceptionBeans);
     }
+    /**********************************************************************************************************************/
 }
