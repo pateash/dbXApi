@@ -32,9 +32,7 @@ public class Initializer implements CommandLineRunner {
         }
         Optional<User> user = userRepository.findByUsername("admin");
         if (!user.isPresent()) {
-            User newUser = new User("Admin", orgUnit, "admin", encoder.encode("12345678"));
-            newUser.setIsEnabled(true);
-            newUser.setRole(UserRole.ROLE_ADMIN);
+            User newUser = new User(null, "Admin", "admin", orgUnit, encoder.encode("12345678"), UserRole.ROLE_ADMIN, true);
             userRepository.save(newUser);
         }
 

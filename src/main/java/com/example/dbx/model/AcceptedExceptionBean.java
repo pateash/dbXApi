@@ -12,11 +12,15 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 //This is the exception that we will store in the database as accepted exception.
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @Data
 @Entity
 @Table(name = "exceptions")
@@ -52,7 +56,7 @@ public class AcceptedExceptionBean {
 
 	private String comment; // We have to fill, initially it'll be null by default
 
-	public AcceptedExceptionBean(String source, String category, String description, ExceptionSeverity severity,
+	/* public AcceptedExceptionBean(String source, String category, String description, ExceptionSeverity severity,
 			BusinessComponent businessComponent, OrgUnit orgUnit, String technicalDescription, String comment) {
 		super();
 		this.timeGenerated = new Timestamp(System.currentTimeMillis());
@@ -66,5 +70,5 @@ public class AcceptedExceptionBean {
 		this.status = ExceptionStatus.STATUS_UNRESOLVED;
 		this.updateTime = null;
 		this.comment = comment;
-	}
+	} */
 }

@@ -9,8 +9,14 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 @Entity
 @Table(name = "org_units", uniqueConstraints = { @UniqueConstraint(columnNames = { "name" }), })
@@ -19,10 +25,6 @@ public class OrgUnit {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
     
-    public OrgUnit() {
-    	super();
-    }
-
     @NotBlank
     @Size(min = 1, max = 50)
     private String name;

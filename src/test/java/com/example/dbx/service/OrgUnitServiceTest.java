@@ -27,7 +27,7 @@ class OrgUnitServiceTest {
     private OrgUnitService orgUnitService;
 
     @Mock
-    private OrgUnitRepository orgUnitRepository; // = Mockito.mock(OrgUnitRepository.class);
+    private OrgUnitRepository orgUnitRepository;
 
     @BeforeEach
     public void init() {
@@ -36,31 +36,36 @@ class OrgUnitServiceTest {
 
     @Test
     void testAddOrgUnit() {
-        OrgUnit orgUnit = new OrgUnit("orgunit");
         when(orgUnitRepository.save(any(OrgUnit.class))).thenReturn(dummyOrgUnit());
+        
+        OrgUnit orgUnit = new OrgUnit("orgunit");
         OrgUnit savedOrgUnit = orgUnitService.addOrgUnit(orgUnit);
+        
+        assertNotNull(savedOrgUnit);
         assertNotNull(savedOrgUnit.getId());
     }
 
     @Test
     void testDeleteOrgUnit() {
-        String res = orgUnitService.deleteOrgUnit(new Long(1));
+        String res = orgUnitService.deleteOrgUnit(1l);
+
         assertEquals("Org Unit deleted successfully!", res);
     }
 
     @Test
     void testGetAllOrgUnits() {
         when(orgUnitRepository.findAll(any(Pageable.class))).thenReturn(dummyPage());
+
         OrgUnitsResult res = orgUnitService.getAllOrgUnits(1, 1);
 
         assertNotNull(res);
         assertNotNull(res.getOrgUnits());
-        assertEquals(new Long(0), res.getTotalElements());
+        assertEquals(0l, res.getTotalElements());
     }
 
     private OrgUnit dummyOrgUnit() {
         OrgUnit orgUnit = new OrgUnit("test");
-        orgUnit.setId(new Long(1));
+        orgUnit.setId(1l);
         return orgUnit;
     }
 

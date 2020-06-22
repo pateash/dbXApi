@@ -3,9 +3,12 @@ package com.example.dbx.service;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
+import java.sql.Timestamp;
+
 import com.example.dbx.exception.InvalidException;
 import com.example.dbx.model.AcceptedExceptionBean;
 import com.example.dbx.model.ExceptionSeverity;
+import com.example.dbx.model.ExceptionStatus;
 import com.example.dbx.model.ExternalException;
 import com.example.dbx.model.OrgUnit;
 import com.example.dbx.model.BusinessComponent;
@@ -52,13 +55,16 @@ public class ExternalExceptionService {
 		if (orgUnit == null || businessComponent == null) {
 			// Incoming request is invalid
 			RejectedExceptionBean rejectedException = new RejectedExceptionBean( // RejectedException
+					null, // id
+					new Timestamp(System.currentTimeMillis()), // timeGenerated
 					externalException.getSource(), // source
 					externalException.getCategory(), // category
 					externalException.getDescription(), // description
 					severity, // severity
 					externalException.getBusinessComponent() + (businessComponent == null ? ",-" : ""), // businessComponent
 					externalException.getOrgUnit() + (orgUnit == null ? ",-" : ""), // orgUnit
-					externalException.getTechnicalDescription(), // technical description
+					externalException.getTechnicalDescription(), // technicalDescription
+					ExceptionStatus.STATUS_UNRESOLVED, // status
 					null // comment
 			);
 
@@ -66,10 +72,10 @@ public class ExternalExceptionService {
 			rejectedExceptionRepository.save(rejectedException);
 
 			if (orgUnit == null && businessComponent != null) {
-				throw new InvalidException("Org-Unit -> " + externalException.getOrgUnit() + " does not Exist");
+				throw new InvalidException(OrgUnitService.notExistsMsg(externalException.getOrgUnit()));
 			} else if (orgUnit != null) {
 				throw new InvalidException(
-						"Business-Component -> " + externalException.getBusinessComponent() + " does not Exist");
+						BusinessComponentService.notExistsMsg(externalException.getBusinessComponent()));
 			} else {
 				throw new InvalidException("Business-Component -> " + externalException.getBusinessComponent()
 						+ " & Org-Unit -> " + externalException.getOrgUnit() + " does not Exist");
@@ -79,6 +85,8 @@ public class ExternalExceptionService {
 
 		// STEP2: Fill in the empty fields required for the database
 		AcceptedExceptionBean acceptedException = new AcceptedExceptionBean( // Accepted exception
+				null, // id
+				new Timestamp(System.currentTimeMillis()), // timeGenerated
 				externalException.getSource(), // source
 				externalException.getCategory(), // category
 				externalException.getDescription(), // description
@@ -86,7 +94,8 @@ public class ExternalExceptionService {
 				businessComponent, // businessComponent
 				orgUnit, // orgUnit
 				externalException.getTechnicalDescription(), // technical description
-				null // comment
+				ExceptionStatus.STATUS_UNRESOLVED, // status
+				null, null // comment
 		);
 
 		// STEP3: Adding the exception to Database

@@ -19,6 +19,14 @@ import lombok.RequiredArgsConstructor;
 public class OrgUnitService {
     private final OrgUnitRepository orgUnitRepository;
 
+    public static String notExistsMsg(String id) {
+        return String.format("Org-Unit -> %s does not Exist", id);
+    }
+
+    public static String notExistsMsg(Long id) {
+        return notExistsMsg(id.toString());
+    }
+
     public OrgUnitsResult getAllOrgUnits(int page, int pageSize) {
         Pageable pageRequest = PageRequest.of(page, pageSize);
         Page<OrgUnit> pageResult;

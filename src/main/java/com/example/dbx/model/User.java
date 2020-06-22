@@ -14,9 +14,11 @@ import javax.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -47,13 +49,4 @@ public class User {
     private UserRole role;
 
     private Boolean isEnabled;
-
-    public User(String name, OrgUnit orgUnit, String username, String password) {
-        this.name = name;
-        this.orgUnit = orgUnit;
-        this.username = username;
-        this.password = password;
-        this.role = UserRole.ROLE_USER;
-        this.isEnabled = false;
-    }
 }

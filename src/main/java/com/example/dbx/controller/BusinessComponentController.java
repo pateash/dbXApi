@@ -11,7 +11,6 @@ import com.example.dbx.service.BusinessComponentService;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -55,6 +54,8 @@ public class BusinessComponentController {
             Principal principal) {
         UserPrinciple userPrinciple = UserPrinciple.extractFromPrincipal(principal);
 
+        System.out.println("PRICIPAL - " + userPrinciple);
+
         return businessComponentService.addBusinessComponent(businessComponent, userPrinciple.getOrgUnit().getId());
     }
 
@@ -65,8 +66,4 @@ public class BusinessComponentController {
         return businessComponentService.updateBusinessComponent(id, businessComponentUpdate);
     }
 
-    @DeleteMapping("/businessComponent/{id}")
-    public String deleteBusinessComponent(@PathVariable("id") Long id) {
-        return businessComponentService.deleteBusinessComponent(id);
-    }
 }

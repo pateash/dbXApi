@@ -44,8 +44,12 @@ public class ExceptionService {
 	private final BusinessComponentRepository businessComponentRepository;
 	private final ExceptionSummaryRepository exceptionSummaryRepository;
 
-	private Direction getDirection(String order) {
+	public static Direction getDirection(String order) {
 		return (order != null && order.toLowerCase().contains("des")) ? Direction.DESC : Direction.ASC;
+	}
+
+	public static String notExistsMsg(Long id) {
+		return String.format("Exception with id -> %s does not exist", id);
 	}
 
 	public ExceptionsResult exceptions( // All exceptions API
@@ -81,16 +85,10 @@ public class ExceptionService {
 		}
 
 		if (filter.getSeverity() != null) {
-			ExceptionSeverity severe = ExceptionSeverity.SEVERITY_LOW;
-			if (filter.getSeverity().equals("medium")) {
-				severe = ExceptionSeverity.SEVERITY_MEDIUM;
-			} else if (filter.getSeverity().equals("high")) {
-				severe = ExceptionSeverity.SEVERITY_HIGH;
-			}
+			ExceptionSeverity severe = filter.getExceptionSeverity();
 
 			if (filter.getStatus() != null) {
-				ExceptionStatus status = filter.getStatus().equals("resolved") ? ExceptionStatus.STATUS_RESOLVED
-						: ExceptionStatus.STATUS_UNRESOLVED;
+				ExceptionStatus status = filter.getExceptionStatus();
 				pageRes = exceptionRepository
 						.findBySourceContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndSeverityAndStatusAndOrgUnitId(
 								filter.getSource(), filter.getCategory(), severe, status, orgUnitId, pageReq);
@@ -100,8 +98,7 @@ public class ExceptionService {
 								filter.getSource(), filter.getCategory(), severe, orgUnitId, pageReq);
 			}
 		} else if (filter.getStatus() != null) {
-			ExceptionStatus status = filter.getStatus().equals("resolved") ? ExceptionStatus.STATUS_RESOLVED
-					: ExceptionStatus.STATUS_UNRESOLVED;
+			ExceptionStatus status = filter.getExceptionStatus();
 			pageRes = exceptionRepository
 					.findBySourceContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndStatusAndOrgUnitId(
 							filter.getSource(), filter.getCategory(), status, orgUnitId, pageReq);
@@ -122,7 +119,7 @@ public class ExceptionService {
 	) {
 		Optional<AcceptedExceptionBean> res = exceptionRepository.findByIdAndOrgUnitId(id, orgUnitId);
 		if (!res.isPresent()) {
-			throw new ExceptionNotFound("Exception with id -> " + id + " does not exist");
+			throw new ExceptionNotFound(notExistsMsg(id));
 		}
 
 		return res.get();
@@ -135,16 +132,16 @@ public class ExceptionService {
 	) {
 		Optional<AcceptedExceptionBean> opt = exceptionRepository.findByIdAndOrgUnitId(id, orgUnitId);
 		if (!opt.isPresent()) {
-			throw new ExceptionNotFound("Exception with id -> " + id + " does not exist");
+			throw new ExceptionNotFound(notExistsMsg(id));
 		}
 		BusinessComponent businessComponent = businessComponentRepository
 				.findByIdAndOrgUnitIdAndIsEnabled(update.getBusinessComponent().getId(), orgUnitId, true);
 		AcceptedExceptionBean res = opt.get();
 
-		long millis = System.currentTimeMillis();
+		Timestamp now = new Timestamp(System.currentTimeMillis());
 
-		OldExceptionBean exceptionBean = new OldExceptionBean(res.getId(), res.getSeverity(),
-				res.getBusinessComponent(), res.getTechnicalDescription(), res.getStatus(), res.getComment());
+		OldExceptionBean exceptionBean = new OldExceptionBean(null, res.getId(), 0, res.getSeverity(),
+				res.getBusinessComponent(), res.getTechnicalDescription(), res.getStatus(), now, res.getComment());
 
 		oldExceptionRepository.save(exceptionBean); // Saving the old exception in database
 
@@ -154,7 +151,7 @@ public class ExceptionService {
 		res.setBusinessComponent(businessComponent);
 		res.setTechnicalDescription(update.getTechnicalDescription());
 		res.setComment(update.getComment());
-		res.setUpdateTime(new Timestamp(millis));
+		res.setUpdateTime(now);
 
 		// Uncomment this
 		res = exceptionRepository.save(res);
@@ -171,7 +168,7 @@ public class ExceptionService {
 	) {
 		Optional<AcceptedExceptionBean> res = exceptionRepository.findByIdAndOrgUnitId(id, orgUnitId);
 		if (!res.isPresent()) {
-			throw new ExceptionNotFound("Exception with id -> " + id + " does not exist");
+			throw new ExceptionNotFound(notExistsMsg(id));
 		}
 
 		PageRequest pageReq = PageRequest.of(page, pageSize, Sort.by(Direction.DESC, "id"));

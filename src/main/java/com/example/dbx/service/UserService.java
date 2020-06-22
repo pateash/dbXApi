@@ -21,6 +21,10 @@ import lombok.AllArgsConstructor;
 public class UserService {
     private final UserRepository userRepository;
 
+    public static String notExistsMsg(Long id) {
+        return "User -> " + id + " does not Exist";
+    }
+
     public UsersResult getAllUsers(int page, int pageSize, UserRole userRole, UserFilter filter) {
         Pageable pageRequest = PageRequest.of(page, pageSize);
         Page<User> pageResult;
@@ -37,7 +41,7 @@ public class UserService {
     public User getUserById(Long id) {
         Optional<User> user = userRepository.findById(id);
         if (!user.isPresent()) {
-            throw new InvalidException("User -> " + id + " does not Exist");
+            throw new InvalidException(notExistsMsg(id));
         }
 
         return user.get();
