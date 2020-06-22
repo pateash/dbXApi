@@ -19,20 +19,17 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.domain.Sort.Order;
+
 
 import com.example.dbx.model.AcceptedExceptionBean;
 import com.example.dbx.model.BusinessComponent;
 import com.example.dbx.model.ExceptionBeanUpdate;
-import com.example.dbx.model.ExceptionFilter;
+
 import com.example.dbx.model.ExceptionSeverity;
 import com.example.dbx.model.ExceptionStatus;
 import com.example.dbx.model.ExceptionSummary;
-import com.example.dbx.model.ExceptionsResult;
+
 import com.example.dbx.model.OldExceptionBean;
 import com.example.dbx.model.OldExceptionsResult;
 import com.example.dbx.model.OrgUnit;
